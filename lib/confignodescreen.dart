@@ -104,7 +104,9 @@ class _ConfigScreenState extends State<ConfigScreen> {
         // with some tabs or something, select between the files
         // eg. network.txt, e131.txt, rconfig.txt etc..
         body: ListView(
-          children: configList(context, "/get/display"),
-        ));
+            children: configList(context, "/get/version") +
+                configList(context, "/json/network.txt") +
+                configList(context, "/json/e131.txt") +
+                configList(context, "/json/rconfig.txt")));
   }
 }
