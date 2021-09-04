@@ -11,6 +11,8 @@ The app should work across Android/IOS mobiles, and Linux/Mac/Windows desktops. 
 
 Does not do much useful yet.
 
+![image](https://github.com/hippyau/RNC/blob/main/screenshot.gif?raw=true)
+
 ## Getting Started
 
 A few resources to get you started if this is your first Flutter project:
