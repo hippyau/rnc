@@ -93,6 +93,18 @@ class _ConfigScreenState extends State<ConfigScreen> {
     return wlist;
   }
 
+  // return an editable list of all the available settings in the
+  // given configuration filename
+  List<Widget> spacerList(BuildContext context, String title, String sub) {
+    List<Widget> wlist = [];
+
+    wlist.add(ListTile(
+      title: Text(title + " {" + sub + "}"),
+      //    subtitle: Text(sub),
+    ));
+    return wlist;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -104,9 +116,13 @@ class _ConfigScreenState extends State<ConfigScreen> {
         // with some tabs or something, select between the files
         // eg. network.txt, e131.txt, rconfig.txt etc..
         body: ListView(
-            children: configList(context, "/get/version") +
+            children: spacerList(context, "Device Version", "Device") +
+                configList(context, "/get/version") +
+                spacerList(context, "Network", "Settings about the network") +
                 configList(context, "/json/network.txt") +
+                spacerList(context, "E131", "Settings about the sACN") +
                 configList(context, "/json/e131.txt") +
+                spacerList(context, "Advanced", "Settings about the node...") +
                 configList(context, "/json/rconfig.txt")));
   }
 }
