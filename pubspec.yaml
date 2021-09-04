@@ -31,6 +31,7 @@ dependencies:
   http: ^0.13.3
   udp: ^3.0.3
   prompt_dialog: ^1.0.5
+  multicast_dns: ^0.3.1
   
 
 # For information on the generic Dart part of this file, see the

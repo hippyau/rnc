@@ -1,3 +1,5 @@
+import 'package:multicast_dns/multicast_dns.dart';
+
 /* global nodes register */
 NodeRecords nodes = NodeRecords();
 
@@ -23,14 +25,39 @@ class NodeRecords {
     foundDevices[ip].type = type;
   }
 
-  void findDevices() {
+  void findDevices() async {
+    addDevice("192.168.1.96", name: "E131 Linux", type: "Application");
+
     // TODO: Search for devices
 
-    // add to the Map,
-    addDevice("192.168.1.96", name: "E131 Linux", type: "Application");
-    // simulate some devices....
-    addDevice("127.0.0.2", name: "This Device2", type: "Application");
-    addDevice("127.0.0.3", name: "This Device3", type: "Application");
-    addDevice("127.0.0.4", name: "This Device3", type: "Application");
+    const String name = '_http._tcp.local';
+    final MDnsClient client = MDnsClient();
+    await client.start();
+    // Get the PTR recod for the service.
+    await for (PtrResourceRecord ptr in client
+        .lookup<PtrResourceRecord>(ResourceRecordQuery.serverPointer(name))) {
+      // Use the domainName from the PTR record to get the SRV record,
+      // which will have the port and local hostname.
+      // Note that duplicate messages may come through, especially if any
+      // other mDNS queries are running elsewhere on the machine.
+
+      await for (SrvResourceRecord srv in client.lookup<SrvResourceRecord>(
+          ResourceRecordQuery.service(ptr.domainName))) {
+        // Domain name will be something like "io.flutter.example@some-iphone.local._dartobservatory._tcp.local"
+        final String bundleId =
+            ptr.domainName; //.substring(0, ptr.domainName.indexOf('@'));
+        print('found: '
+            '${srv.target}:${srv.port} for "$bundleId".');
+      }
+    }
+    client.stop();
+
+    print('Done.');
+
+    // // add to the Map,
+    // // simulate some devices....
+    // addDevice("127.0.0.3", name: "This Device3", type: "Application");
+    // addDevice("127.0.0.4", name: "This Device3", type: "Application");
+    return;
   }
 }

@@ -12,6 +12,7 @@ import 'stringclean.dart';
 // configuration screen for a node
 class ConfigScreen extends StatefulWidget {
   final String ipaddress;
+
   const ConfigScreen({Key? key, required this.ipaddress}) : super(key: key);
   @override
   _ConfigScreenState createState() => _ConfigScreenState();
@@ -34,8 +35,9 @@ class _ConfigScreenState extends State<ConfigScreen> {
   void initState() {
     super.initState();
     // testing
-    this.getJSONData("192.168.1.96", "e131.txt");
+    this.getJSONData("192.168.1.96", "rconfig.txt");
     this.getJSONData("192.168.1.96", "network.txt");
+    this.getJSONData("192.168.1.96", "e131.txt");
   }
 
   // return an editable list of all the available settings in the
@@ -89,9 +91,9 @@ class _ConfigScreenState extends State<ConfigScreen> {
 
         // TODO: Select which config.txt to edit
         // with some tabs or something, select between the files
-        // eg. network.txt, e131.txt, device.txt etc..
+        // eg. network.txt, e131.txt, rconfig.txt etc..
         body: ListView(
-          children: configList(context, "network.txt"),
+          children: configList(context, "rconfig.txt"),
         ));
   }
 }
