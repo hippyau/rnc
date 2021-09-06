@@ -111,8 +111,7 @@ class _ConfigScreenState extends State<ConfigScreen> {
     List<Widget> wlist = [];
 
     wlist.add(ListTile(
-      title: Text(title + " {" + sub + "}"),
-      //    subtitle: Text(sub),
+      title: Text(title + " [" + sub + "]"),
     ));
     return wlist;
   }
@@ -128,15 +127,25 @@ class _ConfigScreenState extends State<ConfigScreen> {
         // with some tabs or something, select between the files
         // eg. network.txt, e131.txt, rconfig.txt etc..
         body: ListView(
-            children: spacerList(context, "Device Version", "Device") +
-                configList(context, "/json/get/version") +
+            children: _buildSectionEditorList("Device", "/json/get/version") +
+                _buildSectionEditorList("Network", "/json/network.txt") +
+                _buildSectionEditorList("E131", "/json/e131.txt") +
+                _buildSectionEditorList("Advanced", "/json/rconfig.txt") +
                 configList(context, "/json/get/uptime") +
-                configList(context, "/json/get/display") +
-                spacerList(context, "Network", "Settings about the network") +
-                configList(context, "/json/network.txt") +
-                spacerList(context, "E131", "Settings about the sACN") +
-                configList(context, "/json/e131.txt") +
-                spacerList(context, "Advanced", "Settings about the node...") +
-                configList(context, "/json/rconfig.txt")));
+                configList(context, "/json/get/display")));
+  }
+
+  List<Widget> _buildSectionEditorList(String txt, String filename) {
+    List<Widget> llist = [];
+    llist.add(Card(
+      child: ExpansionTile(
+        title: Text(
+          txt,
+          style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.w500),
+        ),
+        children: configList(context, filename),
+      ),
+    ));
+    return llist;
   }
 }

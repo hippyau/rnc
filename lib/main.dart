@@ -140,6 +140,7 @@ class _RCMConfigAppState extends State<RCMConfigApp> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
+          leading: Icon(Icons.settings_applications),
           title: Text("Remote Node Configuration"),
         ),
         body: ListView(
