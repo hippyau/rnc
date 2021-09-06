@@ -23,32 +23,44 @@ class _ConfigScreenState extends State<ConfigScreen> {
   // decodes it into the nodes.foundDevices[ipaddress].configData[filename] map.
   Future<String> getJSONData(String ipaddress, String filename) async {
     var a = Uri.http(ipaddress, filename);
-    var response = await http.get(a, headers: {"Accept": "application/json"});
-    this.setState(() {
-      var fileName = (filename.split('/').last);
+    var response;
+    try {
+      response = await http.get(a, headers: {"Accept": "application/json"});
+      this.setState(() {
+        var fileName = (filename.split('/').last);
 
-      Map<String, dynamic> decode = json.decode(response.body);
+        Map<String, dynamic> decode = json.decode(response.body);
+        //print(decode);
 
-      if (fileName.contains(".txt")) {
-        nodes.foundDevices[ipaddress].configData[filename] = decode[fileName];
-      } else {
-        nodes.foundDevices[ipaddress].configData[filename] = decode;
-      }
-    });
+        if (fileName.contains(".txt")) {
+          nodes.foundDevices[ipaddress].configData[filename] = decode[fileName];
+        } else {
+          nodes.foundDevices[ipaddress].configData[filename] = decode;
+        }
+      });
+    } catch (e) {
+      print("Error fetching $filename from $ipaddress");
+      return "Error!";
+    }
     return "Success!";
   }
 
   @override
   void initState() {
     super.initState();
-    // testing
-    this.getJSONData("192.168.1.96", "/get/version");
-    this.getJSONData("192.168.1.96", "/get/uptime");
-    //this.getJSONData("192.168.1.96", "/get/display");
 
-    this.getJSONData("192.168.1.96", "/json/rconfig.txt");
-    this.getJSONData("192.168.1.96", "/json/network.txt");
-    this.getJSONData("192.168.1.96", "/json/e131.txt");
+    // testing
+    try {
+      this.getJSONData("192.168.1.96", "/json/get/version");
+      this.getJSONData("192.168.1.96", "/json/get/uptime");
+      this.getJSONData("192.168.1.96", "/json/get/display");
+      this.getJSONData("192.168.1.96", "/json/rconfig.txt");
+      this.getJSONData("192.168.1.96", "/json/network.txt");
+      this.getJSONData("192.168.1.96", "/json/e131.txt");
+    } catch (e) {
+      print(
+          "An error occured trying to fetch all the device configuration settings.");
+    }
   }
 
   // return an editable list of all the available settings in the
@@ -117,7 +129,9 @@ class _ConfigScreenState extends State<ConfigScreen> {
         // eg. network.txt, e131.txt, rconfig.txt etc..
         body: ListView(
             children: spacerList(context, "Device Version", "Device") +
-                configList(context, "/get/version") +
+                configList(context, "/json/get/version") +
+                configList(context, "/json/get/uptime") +
+                configList(context, "/json/get/display") +
                 spacerList(context, "Network", "Settings about the network") +
                 configList(context, "/json/network.txt") +
                 spacerList(context, "E131", "Settings about the sACN") +
