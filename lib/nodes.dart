@@ -28,31 +28,34 @@ class NodeRecords {
   void findDevices() async {
     addDevice("192.168.1.96", name: "E131 Linux", type: "Application");
 
-    // TODO: Search for devices
-
+    // Search for devices
     const String name = '_http._tcp.local';
     final MDnsClient client = MDnsClient();
     await client.start();
-    // Get the PTR recod for the service.
+    // Get the PTR record for the service.
     await for (PtrResourceRecord ptr in client
         .lookup<PtrResourceRecord>(ResourceRecordQuery.serverPointer(name))) {
       // Use the domainName from the PTR record to get the SRV record,
       // which will have the port and local hostname.
       // Note that duplicate messages may come through, especially if any
       // other mDNS queries are running elsewhere on the machine.
-
       await for (SrvResourceRecord srv in client.lookup<SrvResourceRecord>(
           ResourceRecordQuery.service(ptr.domainName))) {
         // Domain name will be something like "io.flutter.example@some-iphone.local._dartobservatory._tcp.local"
         final String bundleId =
             ptr.domainName; //.substring(0, ptr.domainName.indexOf('@'));
-        print('found: '
-            '${srv.target}:${srv.port} for "$bundleId".');
+        // get the IPv4 address
+        await for (final IPAddressResourceRecord record
+            in client.lookup<IPAddressResourceRecord>(
+                ResourceRecordQuery.addressIPv4(srv.target))) {
+          // we now have an IP, a PORT and a node name
+          print(
+              'mDNS: found: (${record.address.address}) ${srv.target}:${srv.port} for "$bundleId".');
+        }
       }
     }
     client.stop();
-
-    print('Done.');
+    print('mDNS: Done.');
 
     // // add to the Map,
     // // simulate some devices....
