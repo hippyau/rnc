@@ -28,6 +28,7 @@ String prettyConfigText(String input) {
   result = result.replaceAll("Ntp", "NTP");
   result = result.replaceAll("Utc", "UTC");
   result = result.replaceAll("Dmx", "DMX");
+  result = result.replaceAll("Sacn", "sACN");
   return result;
 }
 

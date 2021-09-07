@@ -47,20 +47,10 @@ class _ConfigScreenState extends State<ConfigScreen> {
 
   @override
   void initState() {
-    super.initState();
+    // attempt to get the devices file directory
+    this.getJSONData(widget.ipaddress, "/json/directory");
 
-    // testing
-    try {
-      this.getJSONData("192.168.1.96", "/json/get/version");
-      this.getJSONData("192.168.1.96", "/json/get/uptime");
-      this.getJSONData("192.168.1.96", "/json/get/display");
-      this.getJSONData("192.168.1.96", "/json/rconfig.txt");
-      this.getJSONData("192.168.1.96", "/json/network.txt");
-      this.getJSONData("192.168.1.96", "/json/e131.txt");
-    } catch (e) {
-      print(
-          "An error occured trying to fetch all the device configuration settings.");
-    }
+    super.initState();
   }
 
   // return an editable list of all the available settings in the
@@ -69,6 +59,17 @@ class _ConfigScreenState extends State<ConfigScreen> {
     List<Widget> wlist = [];
 
     var configMap = nodes.foundDevices[widget.ipaddress].configData[filename];
+    nodes.foundDevices[widget.ipaddress].configChanged[filename] = false;
+
+    if (configMap == null) {
+      this.getJSONData(widget.ipaddress, filename);
+      configMap = nodes.foundDevices[widget.ipaddress].configData[filename];
+      if (configMap == null) {
+        print("not yet fetched... $filename");
+        //nodes.foundDevices[widget.ipaddress].configData[filename]
+      }
+    }
+
     //configMap.forEach((k, v) => print('$k : $v'));
     configMap?.forEach((k, v) {
       wlist.add(ListTile(
@@ -96,6 +97,7 @@ class _ConfigScreenState extends State<ConfigScreen> {
 
           if (res != null) {
             //  print("set new value: $res");
+            nodes.foundDevices[widget.ipaddress].configChanged[filename] = true;
             configMap[k] = res;
             setState(() {});
           }
@@ -105,15 +107,35 @@ class _ConfigScreenState extends State<ConfigScreen> {
     return wlist;
   }
 
-  // return an editable list of all the available settings in the
-  // given configuration filename
-  List<Widget> spacerList(BuildContext context, String title, String sub) {
-    List<Widget> wlist = [];
+  List<Widget> _buildDirectoryList() {
+    List<Widget> llist = [];
 
-    wlist.add(ListTile(
-      title: Text(title + " [" + sub + "]"),
-    ));
-    return wlist;
+    // read the node directory (locally cached)
+    var dirMap =
+        nodes.foundDevices[widget.ipaddress].configData["/json/directory"];
+
+    // present a section for all directory entries... (if any)
+    dirMap?.forEach((k, v) {
+      llist.add(Card(
+        child: ExpansionTile(
+          title: Text(
+            prettyConfigText(v),
+            style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.w500),
+          ),
+          children: configList(context, "/json/" + k),
+          trailing: TextButton(
+            child: Text("Save"),
+            onPressed: () {
+              print("post $k to the device");
+            },
+          ),
+        ),
+      ));
+    });
+
+    if (llist.isEmpty) llist.add(Text("Empty"));
+
+    return llist;
   }
 
   @override
@@ -121,31 +143,17 @@ class _ConfigScreenState extends State<ConfigScreen> {
     return Scaffold(
         appBar: AppBar(
           title: Text(widget.ipaddress),
+          actions: [
+            IconButton(
+                onPressed: () {
+                  print("refresh all");
+                  // TODO: "forget" current node, then start over with...
+                  this.getJSONData(widget.ipaddress, "/json/directory");
+                  setState(() {});
+                },
+                icon: Icon(Icons.refresh))
+          ],
         ),
-
-        // TODO: Select which config.txt to edit
-        // with some tabs or something, select between the files
-        // eg. network.txt, e131.txt, rconfig.txt etc..
-        body: ListView(
-            children: _buildSectionEditorList("Device", "/json/get/version") +
-                _buildSectionEditorList("Network", "/json/network.txt") +
-                _buildSectionEditorList("E131", "/json/e131.txt") +
-                _buildSectionEditorList("Advanced", "/json/rconfig.txt") +
-                configList(context, "/json/get/uptime") +
-                configList(context, "/json/get/display")));
-  }
-
-  List<Widget> _buildSectionEditorList(String txt, String filename) {
-    List<Widget> llist = [];
-    llist.add(Card(
-      child: ExpansionTile(
-        title: Text(
-          txt,
-          style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.w500),
-        ),
-        children: configList(context, filename),
-      ),
-    ));
-    return llist;
+        body: ListView(children: _buildDirectoryList()));
   }
 }

@@ -8,6 +8,8 @@ class NodeRecord {
   String name = "Node";
   String type = "None";
   final Map<String, dynamic> configData = {}; // filename.txt JSON strings
+  final Map<String, bool> configChanged = {}; // has config changed
+
 }
 
 class NodeRecords {
