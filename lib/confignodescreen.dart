@@ -30,10 +30,13 @@ class _ConfigScreenState extends State<ConfigScreen> {
         var fileName = (filename.split('/').last);
 
         Map<String, dynamic> decode = json.decode(response.body);
-        //print(decode);
+        print(filename + ": " + decode.toString());
 
         if (fileName.contains(".txt")) {
           nodes.foundDevices[ipaddress].configData[filename] = decode[fileName];
+        } else if (fileName.contains("directory")) {
+          nodes.foundDevices[ipaddress].configData[filename] =
+              decode["directory"];
         } else {
           nodes.foundDevices[ipaddress].configData[filename] = decode;
         }
@@ -47,9 +50,8 @@ class _ConfigScreenState extends State<ConfigScreen> {
 
   @override
   void initState() {
-    // attempt to get the devices file directory
+    // attempt to get the directory json file
     this.getJSONData(widget.ipaddress, "/json/directory");
-
     super.initState();
   }
 
@@ -72,38 +74,85 @@ class _ConfigScreenState extends State<ConfigScreen> {
 
     //configMap.forEach((k, v) => print('$k : $v'));
     configMap?.forEach((k, v) {
-      wlist.add(ListTile(
-        title: Text(prettyConfigText(k)),
-        subtitle: Text("$v"),
-        onTap: () async {
-          var res = await prompt(
-            context,
-            title: Text(prettyConfigText(k)),
-            initialValue: v.toString(),
-            textOK: Text('Set'),
-            textCancel: Text('Cancel'),
-            hintText: k,
-            validator: (String? value) {
-              if (value == null || value.isEmpty) {
-                return 'Please enter a value';
-              }
-              return null;
-            },
-            minLines: 1,
-            maxLines: 1,
-            autoFocus: true,
-            barrierDismissible: true,
-          );
+      // decide what tile to add, based on the field type (k)
+      var res;
 
-          if (res != null) {
-            //  print("set new value: $res");
-            nodes.foundDevices[widget.ipaddress].configChanged[filename] = true;
-            configMap[k] = res;
-            setState(() {});
-          }
-        },
-      ));
+// boolean "switch"
+      if (k.contains("use_")) {
+        wlist.add(ListTile(
+          title: Text(prettyConfigText(k)),
+          trailing: Switch(
+            value: (v != "0"),
+            onChanged: (value) {
+              setState(() {
+                if (value) {
+                  configMap[k] = "1";
+                } else {
+                  configMap[k] = "0";
+                }
+              });
+            },
+          ),
+        ));
+      }
+//       else if (k.contains("time")) {
+// // ask text edit (default)
+//         wlist.add(ListTile(
+//             title: Text(prettyConfigText(k)),
+//             subtitle: Text("$v" + " Seconds"),
+//             onTap: () async {
+//               res = await prompt(
+//                 context,
+//                 title: Text(prettyConfigText(k)),
+//                 initialValue: v.toString(),
+//                 textOK: Text('Set'),
+//                 textCancel: Text('Cancel'),
+//                 hintText: "Seconds",
+//                 validator: (String? value) {
+//                   if (value == null || value.isEmpty) {
+//                     return 'Please enter a value';
+//                   }
+//                   return null;
+//                 },
+//                 minLines: 1,
+//                 maxLines: 1,
+//                 autoFocus: true,
+//                 barrierDismissible: true,
+//               );
+//             }));
+//       }
+      else {
+// ask text edit (default)
+
+        wlist.add(ListTile(
+            title: Text(prettyConfigText(k)),
+            subtitle: Text("$v"),
+            onTap: () async {
+              res = await prompt(
+                context,
+                title: Text(prettyConfigText(k)),
+                initialValue: v.toString(),
+                textOK: Text('Set'),
+                textCancel: Text('Cancel'),
+                hintText: k,
+                validator: (String? value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter a value';
+                  }
+                  return null;
+                },
+                minLines: 1,
+                maxLines: 1,
+                autoFocus: true,
+                barrierDismissible: true,
+              );
+            }));
+      }
+
+// or ask switch
+// or ask ip address
     });
+
     return wlist;
   }
 
