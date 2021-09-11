@@ -40,6 +40,7 @@ class _ConfigScreenState extends State<ConfigScreen> {
         } else {
           nodes.foundDevices[ipaddress].configData[filename] = decode;
         }
+        nodes.foundDevices[widget.ipaddress].configChanged[filename] = false;
       });
     } catch (e) {
       print("Error fetching $filename from $ipaddress");
@@ -55,14 +56,21 @@ class _ConfigScreenState extends State<ConfigScreen> {
     super.initState();
   }
 
+  // store the changed setting
+  void _setNewValue(String filename, String setting, String value) {
+    print("set new value: Setting $setting = $value in $filename");
+    nodes.foundDevices[widget.ipaddress].configChanged[filename] = true;
+    nodes.foundDevices[widget.ipaddress].configData[filename][setting] = value;
+    setState(() {}); // refresh the display
+  }
+
   // return an editable list of all the available settings in the
   // given configuration filename
   List<Widget> configList(BuildContext context, String filename) {
     List<Widget> wlist = [];
 
     var configMap = nodes.foundDevices[widget.ipaddress].configData[filename];
-    nodes.foundDevices[widget.ipaddress].configChanged[filename] = false;
-
+    //
     if (configMap == null) {
       this.getJSONData(widget.ipaddress, filename);
       configMap = nodes.foundDevices[widget.ipaddress].configData[filename];
@@ -77,7 +85,7 @@ class _ConfigScreenState extends State<ConfigScreen> {
       // decide what tile to add, based on the field type (k)
       var res;
 
-// boolean "switch"
+      // boolean "switch"
       if (k.contains("use_")) {
         wlist.add(ListTile(
           title: Text(prettyConfigText(k)),
@@ -86,9 +94,9 @@ class _ConfigScreenState extends State<ConfigScreen> {
             onChanged: (value) {
               setState(() {
                 if (value) {
-                  configMap[k] = "1";
+                  _setNewValue(filename, k, "1");
                 } else {
-                  configMap[k] = "0";
+                  _setNewValue(filename, k, "0");
                 }
               });
             },
@@ -137,23 +145,69 @@ class _ConfigScreenState extends State<ConfigScreen> {
                 hintText: k,
                 validator: (String? value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please enter a value';
+                    return null; //'Please enter a value';
                   }
-                  return null;
+                  return value;
                 },
                 minLines: 1,
                 maxLines: 1,
                 autoFocus: true,
                 barrierDismissible: true,
               );
+
+              if (res != null) {
+                _setNewValue(filename, k, res);
+                nodes.foundDevices[widget.ipaddress].configChanged[filename] =
+                    true;
+                this.setState(() {});
+              }
             }));
       }
 
-// or ask switch
-// or ask ip address
+      // or ask ip address
     });
 
     return wlist;
+  }
+
+// should return a sve button or a "V" button
+  Widget _dropOrSave(String filename) {
+    if (filename.contains(".txt") &&
+        nodes.foundDevices[widget.ipaddress].configChanged[filename] == true) {
+      // TODO: fix: pretty
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          TextButton(
+            child: Text("Revert"),
+            onPressed: () {
+              print("Undo changed");
+              nodes.foundDevices[widget.ipaddress].configChanged[filename] =
+                  false;
+              getJSONData(widget.ipaddress, filename);
+              this.setState(() {});
+            },
+          ),
+          TextButton(
+            child: Text("Save"),
+            onPressed: () {
+              print("Post $filename to the device...");
+              nodes.foundDevices[widget.ipaddress].configChanged[filename] =
+                  false;
+
+              // TODO: SUBMIT THE CHANGES
+
+              // Read back the configuration
+              getJSONData(widget.ipaddress, filename);
+              this.setState(() {});
+            },
+          ),
+        ],
+      );
+    } else {
+      return Icon(Icons.arrow_drop_down);
+    }
   }
 
   List<Widget> _buildDirectoryList() {
@@ -167,18 +221,12 @@ class _ConfigScreenState extends State<ConfigScreen> {
     dirMap?.forEach((k, v) {
       llist.add(Card(
         child: ExpansionTile(
-          title: Text(
-            prettyConfigText(v),
-            style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.w500),
-          ),
-          children: configList(context, "/json/" + k),
-          trailing: TextButton(
-            child: Text("Save"),
-            onPressed: () {
-              print("post $k to the device");
-            },
-          ),
-        ),
+            title: Text(
+              prettyConfigText(v),
+              style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.w500),
+            ),
+            children: configList(context, "/json/" + k),
+            trailing: _dropOrSave("/json/" + k)),
       ));
     });
 
