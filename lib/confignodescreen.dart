@@ -30,13 +30,13 @@ class _ConfigScreenState extends State<ConfigScreen> {
         var fileName = (filename.split('/').last);
 
         Map<String, dynamic> decode = json.decode(response.body);
-        print(filename + ": " + decode.toString());
+        //print(filename + ": " + decode.toString());
+        print(response.body);
 
         if (fileName.contains(".txt")) {
           nodes.foundDevices[ipaddress].configData[filename] = decode[fileName];
         } else if (fileName.contains("directory")) {
-          nodes.foundDevices[ipaddress].configData[filename] =
-              decode["directory"];
+          nodes.foundDevices[ipaddress].configData[filename] = decode["files"];
         } else {
           nodes.foundDevices[ipaddress].configData[filename] = decode;
         }
@@ -47,6 +47,32 @@ class _ConfigScreenState extends State<ConfigScreen> {
       return "Error!";
     }
     return "Success!";
+  }
+
+  // post a JSON file
+  Future<http.Response> _setJSONData(String ipaddress, String filename) async {
+    var fileName = (filename.split('/').last);
+
+    var postbody = "{\"$fileName\": " +
+        jsonEncode(nodes.foundDevices[ipaddress].configData[filename]) +
+        "}";
+
+    String addr = "http://" + ipaddress + "/json";
+    print("Post to '$addr': " + postbody);
+
+    var res;
+    res = await http.post(
+      Uri.parse(addr),
+      headers: <String, String>{
+        'Content-Type': 'application/json',
+      },
+      body: postbody,
+    );
+    print("Post Return: " + res.body);
+    if (!res.body.contains("OK")) {
+      // failed
+    }
+    return res;
   }
 
   @override
@@ -60,7 +86,19 @@ class _ConfigScreenState extends State<ConfigScreen> {
   void _setNewValue(String filename, String setting, String value) {
     print("set new value: Setting $setting = $value in $filename");
     nodes.foundDevices[widget.ipaddress].configChanged[filename] = true;
-    nodes.foundDevices[widget.ipaddress].configData[filename][setting] = value;
+
+    if (isNumeric(value)) {
+      if (value.contains(".")) {
+        nodes.foundDevices[widget.ipaddress].configData[filename][setting] =
+            double.parse(value);
+      } else {
+        nodes.foundDevices[widget.ipaddress].configData[filename][setting] =
+            int.parse(value);
+      }
+    } else
+      nodes.foundDevices[widget.ipaddress].configData[filename][setting] =
+          value;
+
     setState(() {}); // refresh the display
   }
 
@@ -90,7 +128,7 @@ class _ConfigScreenState extends State<ConfigScreen> {
         wlist.add(ListTile(
           title: Text(prettyConfigText(k)),
           trailing: Switch(
-            value: (v != "0"),
+            value: (v != 0),
             onChanged: (value) {
               setState(() {
                 if (value) {
@@ -175,35 +213,36 @@ class _ConfigScreenState extends State<ConfigScreen> {
     if (filename.contains(".txt") &&
         nodes.foundDevices[widget.ipaddress].configChanged[filename] == true) {
       // TODO: fix: pretty
-      return Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
+      return
+          // Row(
+          //   crossAxisAlignment: CrossAxisAlignment.end,
+          //   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          //   children: [
+          //     TextButton(
+          //       child: Text("Revert"),
+          //       onPressed: () {
+          //         print("Undo changed");
+          //         nodes.foundDevices[widget.ipaddress].configChanged[filename] =
+          //             false;
+          //         getJSONData(widget.ipaddress, filename);
+          //         this.setState(() {});
+          //       },
+          //     ),
           TextButton(
-            child: Text("Revert"),
-            onPressed: () {
-              print("Undo changed");
-              nodes.foundDevices[widget.ipaddress].configChanged[filename] =
-                  false;
-              getJSONData(widget.ipaddress, filename);
-              this.setState(() {});
-            },
-          ),
-          TextButton(
-            child: Text("Save"),
-            onPressed: () {
-              print("Post $filename to the device...");
-              nodes.foundDevices[widget.ipaddress].configChanged[filename] =
-                  false;
+        child: Text("Save"),
+        onPressed: () {
+          print("Post $filename to the device...");
+          nodes.foundDevices[widget.ipaddress].configChanged[filename] = false;
 
-              // TODO: SUBMIT THE CHANGES
+          // TODO: SUBMIT THE CHANGES
+          _setJSONData(widget.ipaddress, filename);
 
-              // Read back the configuration
-              getJSONData(widget.ipaddress, filename);
-              this.setState(() {});
-            },
-          ),
-        ],
+          // Read back the configuration
+          getJSONData(widget.ipaddress, filename);
+          this.setState(() {});
+        },
+        //     ),
+        //   ],
       );
     } else {
       return Icon(Icons.arrow_drop_down);
