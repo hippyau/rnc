@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+//import 'package:http/retry.dart';
 import 'package:prompt_dialog/prompt_dialog.dart';
 
 import 'nodes.dart';
@@ -21,29 +22,34 @@ class ConfigScreen extends StatefulWidget {
 class _ConfigScreenState extends State<ConfigScreen> {
   // retrieve JSON from a node at ipaddress, looking for /json/filename.txt
   // decodes it into the nodes.foundDevices[ipaddress].configData[filename] map.
-  Future<String> getJSONData(String ipaddress, String filename) async {
+  String getJSONData(String ipaddress, String filename) {
     var a = Uri.http(ipaddress, filename);
-    var response;
     try {
-      response = await http.get(a, headers: {"Accept": "application/json"});
-      this.setState(() {
-        var fileName = (filename.split('/').last);
+      var response = http.get(a, headers: {"Accept": "application/json"});
 
-        Map<String, dynamic> decode = json.decode(response.body);
-        //print(filename + ": " + decode.toString());
-        print(response.body);
+      response.then((value) {
+        print(value.body);
 
-        if (fileName.contains(".txt")) {
-          nodes.foundDevices[ipaddress].configData[filename] = decode[fileName];
-        } else if (fileName.contains("directory")) {
-          nodes.foundDevices[ipaddress].configData[filename] = decode["files"];
-        } else {
-          nodes.foundDevices[ipaddress].configData[filename] = decode;
-        }
-        nodes.foundDevices[widget.ipaddress].configChanged[filename] = false;
+        this.setState(() {
+          var fileName = (filename.split('/').last);
+
+          Map<String, dynamic> decode = json.decode(value.body);
+          print(filename + ": " + decode.toString());
+
+          if (fileName.contains(".txt")) {
+            nodes.foundDevices[ipaddress].configData[filename] =
+                decode[fileName];
+          } else if (fileName.contains("directory")) {
+            nodes.foundDevices[ipaddress].configData[filename] =
+                decode["files"];
+          } else {
+            nodes.foundDevices[ipaddress].configData[filename] = decode;
+          }
+          nodes.foundDevices[widget.ipaddress].configChanged[filename] = false;
+        });
       });
     } catch (e) {
-      print("Error fetching $filename from $ipaddress");
+      print("Error fetching $filename from $ipaddress : $e");
       return "Error!";
     }
     return "Success!";
@@ -71,13 +77,14 @@ class _ConfigScreenState extends State<ConfigScreen> {
     print("Post Return: " + res.body);
     if (!res.body.contains("OK")) {
       // failed
+      print("Post Failed!");
     }
     return res;
   }
 
   @override
   void initState() {
-    // attempt to get the directory json file
+    // attempt to get the directory json file for the device
     this.getJSONData(widget.ipaddress, "/json/directory");
     super.initState();
   }
@@ -109,14 +116,15 @@ class _ConfigScreenState extends State<ConfigScreen> {
 
     var configMap = nodes.foundDevices[widget.ipaddress].configData[filename];
     //
-    if (configMap == null) {
-      this.getJSONData(widget.ipaddress, filename);
-      configMap = nodes.foundDevices[widget.ipaddress].configData[filename];
-      if (configMap == null) {
-        print("not yet fetched... $filename");
-        //nodes.foundDevices[widget.ipaddress].configData[filename]
-      }
-    }
+    // if (configMap == null) {
+    //   // this.getJSONData(widget.ipaddress, filename);
+
+    //   configMap = nodes.foundDevices[widget.ipaddress].configData[filename];
+    //   if (configMap == null) {
+    //     print("not yet fetched... $filename");
+    //     //nodes.foundDevices[widget.ipaddress].configData[filename]
+    //   }
+    // }
 
     //configMap.forEach((k, v) => print('$k : $v'));
     configMap?.forEach((k, v) {
@@ -212,37 +220,19 @@ class _ConfigScreenState extends State<ConfigScreen> {
   Widget _dropOrSave(String filename) {
     if (filename.contains(".txt") &&
         nodes.foundDevices[widget.ipaddress].configChanged[filename] == true) {
-      // TODO: fix: pretty
-      return
-          // Row(
-          //   crossAxisAlignment: CrossAxisAlignment.end,
-          //   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          //   children: [
-          //     TextButton(
-          //       child: Text("Revert"),
-          //       onPressed: () {
-          //         print("Undo changed");
-          //         nodes.foundDevices[widget.ipaddress].configChanged[filename] =
-          //             false;
-          //         getJSONData(widget.ipaddress, filename);
-          //         this.setState(() {});
-          //       },
-          //     ),
-          TextButton(
+      return TextButton(
         child: Text("Save"),
         onPressed: () {
           print("Post $filename to the device...");
           nodes.foundDevices[widget.ipaddress].configChanged[filename] = false;
 
-          // TODO: SUBMIT THE CHANGES
+          // SUBMIT THE CHANGES
           _setJSONData(widget.ipaddress, filename);
 
           // Read back the configuration
-          getJSONData(widget.ipaddress, filename);
-          this.setState(() {});
+          //    getJSONData(widget.ipaddress, filename);
+          //      this.setState(() {});
         },
-        //     ),
-        //   ],
       );
     } else {
       return Icon(Icons.arrow_drop_down);
@@ -253,23 +243,46 @@ class _ConfigScreenState extends State<ConfigScreen> {
     List<Widget> llist = [];
 
     // read the node directory (locally cached)
-    var dirMap =
+    Map? dirMap =
         nodes.foundDevices[widget.ipaddress].configData["/json/directory"];
 
     // present a section for all directory entries... (if any)
     dirMap?.forEach((k, v) {
       llist.add(Card(
         child: ExpansionTile(
-            title: Text(
-              prettyConfigText(v),
-              style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.w500),
-            ),
-            children: configList(context, "/json/" + k),
-            trailing: _dropOrSave("/json/" + k)),
+          title: Text(
+            prettyConfigText(v),
+            style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.w500),
+          ),
+          children: configList(context, "/json/" + k),
+          trailing: _dropOrSave("/json/" + k),
+          onExpansionChanged: (value) {
+            if (value == true) {
+              getJSONData(widget.ipaddress, "/json/" + k);
+            }
+          },
+        ),
       ));
     });
 
-    if (llist.isEmpty) llist.add(Text("Empty"));
+// Every device has a version
+    llist.add(Card(
+      child: ExpansionTile(
+        title: Text(
+          prettyConfigText("Version"),
+          style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.w500),
+        ),
+        children: configList(context, "/json/version"),
+        trailing: _dropOrSave("/json/version"),
+        onExpansionChanged: (value) {
+          if (value == true) {
+            getJSONData(widget.ipaddress, "/json/version");
+          }
+        },
+      ),
+    ));
+
+    if (llist.isEmpty) llist.add(Text("Device not recognized."));
 
     return llist;
   }
@@ -285,6 +298,7 @@ class _ConfigScreenState extends State<ConfigScreen> {
                   print("refresh all");
                   // TODO: "forget" current node, then start over with...
                   this.getJSONData(widget.ipaddress, "/json/directory");
+
                   setState(() {});
                 },
                 icon: Icon(Icons.refresh))
