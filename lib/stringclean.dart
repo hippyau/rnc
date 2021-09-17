@@ -41,7 +41,7 @@ String printDuration(Duration duration) {
 
 // returns true if string is a number
 bool isNumeric(String s) {
-  if (s == null) {
+  if (s == "") {
     return false;
   }
   return double.tryParse(s) != null;
