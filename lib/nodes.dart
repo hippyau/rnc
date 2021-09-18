@@ -65,6 +65,8 @@ class NodeRecords {
           // we now have an IP, a PORT and a node name
           print(
               'mDNS: found: (${record.address.address}) ${srv.target}:${srv.port} for "$bundleId".');
+          addDevice(record.address.address.toString(),
+              name: "Unknown", type: "mDNS");
         }
       }
     }
