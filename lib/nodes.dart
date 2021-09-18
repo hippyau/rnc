@@ -29,6 +29,10 @@ class NodeRecords {
     foundDevices[ip].type = type;
   }
 
+  void removeDevice(String ip) {
+    foundDevices.remove(ip);
+  }
+
   void findDevices() async {
     addDevice("192.168.1.96", name: "E131 Linux", type: "Application");
     //  addDevice("192.168.1.95", name: "Display Name", type: "Board");
