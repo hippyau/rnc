@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:multicast_dns/multicast_dns.dart';
 
 /* global nodes register */
@@ -29,22 +31,22 @@ class NodeRecords {
 
   void findDevices() async {
     addDevice("192.168.1.96", name: "E131 Linux", type: "Application");
-    addDevice("192.168.1.95", name: "Display Name", type: "Board");
+    //  addDevice("192.168.1.95", name: "Display Name", type: "Board");
 
-/*   
     // might be required for android et al.
     var factory = (dynamic host, int port,
         {bool? reuseAddress, bool? reusePort, int? ttl}) {
       var tll = 5;
       return RawDatagramSocket.bind(host, port,
-          reuseAddress: true, reusePort: false, ttl: tll);
+          reuseAddress: true, reusePort: true, ttl: tll);
     };
 
     final MDnsClient client = MDnsClient(rawDatagramSocketFactory: factory);
- */
+
+    // final MDnsClient client = MDnsClient();
+
     // Search for devices
     const String name = '_http._tcp.local';
-    final MDnsClient client = MDnsClient();
     await client.start();
     // Get the PTR record for the service.
     await for (PtrResourceRecord ptr in client

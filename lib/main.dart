@@ -138,6 +138,7 @@ class _RCMConfigAppState extends State<RCMConfigApp> {
 // application front page
 // list of discovered nodes (nodeCards)
   Widget build(BuildContext context) {
+    nodes.findDevices();
     return Scaffold(
         appBar: AppBar(
           leading: Icon(Icons.settings_applications),
