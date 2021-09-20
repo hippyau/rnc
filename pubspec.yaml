@@ -33,6 +33,7 @@ dependencies:
   prompt_dialog: ^1.0.6
   multicast_dns: ^0.3.1
   sync_http: ^0.3.0
+  flutter_colorpicker: ^0.6.0
   
 
 # For information on the generic Dart part of this file, see the

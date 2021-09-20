@@ -153,6 +153,17 @@ class _RCMConfigAppState extends State<RCMConfigApp> {
         appBar: AppBar(
           leading: Icon(Icons.settings_applications),
           title: Text("Remote Node Configuration"),
+          actions: [
+            IconButton(
+                onPressed: () {
+                  print("Refresh all");
+                  // "forget" current node, then start over with...
+                  //         nodes.removeDevice(widget.ipaddress);
+                  nodes.findDevices();
+                  setState(() {});
+                },
+                icon: Icon(Icons.refresh))
+          ],
         ),
         body: ListView(
           children: [

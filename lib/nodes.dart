@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:multicast_dns/multicast_dns.dart';
 //import 'package:rcmnode/confignodescreen.dart';
@@ -34,8 +36,34 @@ class NodeRecords {
     foundDevices.remove(ip);
   }
 
+  bool _getJSONlist(String ipaddress) {
+    var a = Uri.http(ipaddress, "/json/list");
+    try {
+      var response = http.get(a, headers: {"Accept": "application/json"});
+
+      response.then((value) {
+        print(value.body);
+
+        Map<String, dynamic> decode = json.decode(value.body);
+        print("LIST: " + decode.toString());
+
+        var nodename = decode["list"]?["name"];
+        var nodetype = decode["list"]?["node"]?["type"];
+        if (nodetype != null && nodename != null) {
+          addDevice(ipaddress, name: nodename, type: nodetype);
+          return true;
+        }
+      });
+    } catch (e) {
+      print("Error fetching LIST from $ipaddress : $e");
+    }
+    return false;
+  }
+
   void findDevices() async {
     addDevice("192.168.1.96", name: "E131 Linux", type: "Application");
+    addDevice("192.168.1.44", name: "Note", type: "Type");
+
     //  addDevice("192.168.1.95", name: "Display Name", type: "Board");
 
     // might be required for android et al.
@@ -49,6 +77,8 @@ class NodeRecords {
     final MDnsClient client = MDnsClient(rawDatagramSocketFactory: factory);
 
     // final MDnsClient client = MDnsClient();
+
+    List<String> foundips = [];
 
     // Search for devices
     print("mDNS: Search...");
@@ -71,10 +101,15 @@ class NodeRecords {
             in client.lookup<IPAddressResourceRecord>(
                 ResourceRecordQuery.addressIPv4(srv.target))) {
           // we now have an IP, a PORT and a node name
+          var ipaddress = record.address.address;
           print(
-              'mDNS: -> found: (${record.address.address}) ${srv.target}:${srv.port} for "$bundleId".');
-          addDevice(record.address.address.toString(),
-              name: "Unknown", type: "mDNS");
+              'mDNS: -> found: ($ipaddress) ${srv.target}:${srv.port} for "$bundleId".');
+
+          if (foundips.contains(ipaddress) != true)
+            // try to get /json/list then add to device list
+            _getJSONlist(ipaddress);
+
+          foundips.add(ipaddress);
         }
       }
     }
