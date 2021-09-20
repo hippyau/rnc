@@ -53,6 +53,11 @@ class _RCMConfigAppState extends State<RCMConfigApp> {
 // return a single nodeCard for a node with given ipaddress
   Widget nodeCard(String ipaddress) {
     NodeRecord node = nodes.foundDevices[ipaddress];
+    String nodeImg = "graphics/xlr5.jpg";
+    if (node.type.contains("LTC")) {
+      nodeImg = "graphics/ltc3.jpg";
+    }
+
     return Card(
       child: Container(
         height: 100,
@@ -62,7 +67,7 @@ class _RCMConfigAppState extends State<RCMConfigApp> {
             Center(
               child: Padding(
                   padding: EdgeInsets.all(10),
-                  child: Image(image: AssetImage('graphics/xlr5.jpg'))),
+                  child: Image(image: AssetImage(nodeImg))),
             ),
             Expanded(
               child: Container(
