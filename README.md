@@ -9,9 +9,21 @@ The app should work across Android/IOS mobiles, and Linux/Mac/Windows desktops. 
 
 ## Status
 
-Does not do much useful yet.
+#### Still in development
 
-![image](https://github.com/hippyau/RNC/blob/main/screenshot.gif?raw=true)
+
+Working with latest development branch, can detect devices via mDNS and retrieve and store .txt files via the HTTP server.
+
+
+
+![image](https://github.com/hippyau/RNC/blob/main/ezgif-5-58c61feea76a.gif?raw=true)
+
+Working on Linux, Android and should work on MacOS and Window, but needs to be compiled on those platforms for desktop/devices, and I don't have a iPhone etc...
+
+
+
+...
+
 
 ## Getting Started
 
