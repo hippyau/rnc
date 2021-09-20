@@ -82,6 +82,15 @@ class _RCMConfigAppState extends State<RCMConfigApp> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
+// Identify button
+                          TextButton(
+                            onPressed: () => nodes.rebootDevice(ipaddress),
+                            child: Text("Reboot"),
+                          ),
+                          SizedBox(
+                            width: 8,
+                          ),
+
                           // Identify button
                           TextButton(
                             onPressed: () => showDialog<String>(
@@ -139,6 +148,7 @@ class _RCMConfigAppState extends State<RCMConfigApp> {
 // list of discovered nodes (nodeCards)
   Widget build(BuildContext context) {
     nodes.findDevices();
+
     return Scaffold(
         appBar: AppBar(
           leading: Icon(Icons.settings_applications),

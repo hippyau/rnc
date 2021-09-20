@@ -1,6 +1,7 @@
 import 'dart:io';
-
+import 'package:http/http.dart' as http;
 import 'package:multicast_dns/multicast_dns.dart';
+//import 'package:rcmnode/confignodescreen.dart';
 
 /* global nodes register */
 NodeRecords nodes = NodeRecords();
@@ -50,6 +51,7 @@ class NodeRecords {
     // final MDnsClient client = MDnsClient();
 
     // Search for devices
+    print("mDNS: Search...");
     const String name = '_http._tcp.local';
     await client.start();
     // Get the PTR record for the service.
@@ -70,19 +72,37 @@ class NodeRecords {
                 ResourceRecordQuery.addressIPv4(srv.target))) {
           // we now have an IP, a PORT and a node name
           print(
-              'mDNS: found: (${record.address.address}) ${srv.target}:${srv.port} for "$bundleId".');
+              'mDNS: -> found: (${record.address.address}) ${srv.target}:${srv.port} for "$bundleId".');
           addDevice(record.address.address.toString(),
               name: "Unknown", type: "mDNS");
         }
       }
     }
     client.stop();
-    print('mDNS: Done.');
+    print('mDNS: Search Complete.');
 
-    // // add to the Map,
-    // // simulate some devices....
-    // addDevice("127.0.0.3", name: "This Device3", type: "Application");
-    // addDevice("127.0.0.4", name: "This Device3", type: "Application");
+    return;
+  }
+
+  void rebootDevice(String ipaddress) async {
+    var postbody = "{\"reboot\":1}";
+
+    String addr = "http://" + ipaddress + "/json/action";
+    print("rebootDevice: Post to '$addr': " + postbody);
+
+    var res;
+    res = await http.post(
+      Uri.parse(addr),
+      headers: <String, String>{
+        'Content-Type': 'application/json',
+      },
+      body: postbody,
+    );
+    print("rebootDevice: Post Return: " + res.body);
+    if (!res.body.contains("OK")) {
+      // failed
+      print("rebootDevice: Post Failed!");
+    }
     return;
   }
 }
