@@ -152,7 +152,9 @@ class _RCMConfigAppState extends State<RCMConfigApp> {
 // application front page
 // list of discovered nodes (nodeCards)
   Widget build(BuildContext context) {
-    nodes.findDevices();
+    // nodes.findDevices().then((value) {
+    //   setState(() {});
+    // });
 
     return Scaffold(
         appBar: AppBar(
@@ -164,17 +166,24 @@ class _RCMConfigAppState extends State<RCMConfigApp> {
                   print("Refresh all");
                   // "forget" current node, then start over with...
                   //         nodes.removeDevice(widget.ipaddress);
-                  nodes.findDevices();
-                  setState(() {});
+                  nodes.findDevices().then((value) {
+                    setState(() {});
+                  });
                 },
                 icon: Icon(Icons.refresh))
           ],
         ),
-        body: ListView(
-          children: [
-            // draw a card for all nodes found, by ipaddress
-            for (var i in nodes.foundDevices.keys) nodeCard(i),
-          ],
-        ));
+        body: searchingForDevices == true
+            ? _buildSearching()
+            : ListView(
+                children: [
+                  // draw a card for all nodes found, by ipaddress
+                  for (var i in nodes.foundDevices.keys) nodeCard(i),
+                ],
+              ));
+  }
+
+  Widget _buildSearching() {
+    return CircularProgressIndicator();
   }
 }

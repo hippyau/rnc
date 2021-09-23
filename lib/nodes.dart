@@ -1,12 +1,12 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:multicast_dns/multicast_dns.dart';
-//import 'package:rcmnode/confignodescreen.dart';
 
 /* global nodes register */
 NodeRecords nodes = NodeRecords();
+
+bool searchingForDevices = false;
 
 // record of a single node
 class NodeRecord {
@@ -23,7 +23,7 @@ class NodeRecords {
 
   // constructor
   NodeRecords() {
-    findDevices();
+    // findDevices();
   }
 
   void addDevice(String ip, {String? type, String? name}) {
@@ -60,11 +60,12 @@ class NodeRecords {
     return false;
   }
 
-  void findDevices() async {
+  Future<bool> findDevices() async {
+    searchingForDevices = true;
     addDevice("192.168.1.96", name: "E131 Linux", type: "Application");
     // addDevice("192.168.1.44", name: "Note", type: "Type");
-
     //  addDevice("192.168.1.95", name: "Display Name", type: "Board");
+    var addedAny = false;
 
     // might be required for android et al.
     var factory = (dynamic host, int port,
@@ -105,9 +106,12 @@ class NodeRecords {
           print(
               'mDNS: -> found: ($ipaddress) ${srv.target}:${srv.port} for "$bundleId".');
 
-          if (foundips.contains(ipaddress) != true)
+          if (foundips.contains(ipaddress) != true) {
             // try to get /json/list then add to device list
-            _getJSONlist(ipaddress);
+            if (_getJSONlist(ipaddress)) {
+              addedAny = true;
+            }
+          }
 
           foundips.add(ipaddress);
         }
@@ -115,8 +119,8 @@ class NodeRecords {
     }
     client.stop();
     print('mDNS: Search Complete.');
-
-    return;
+    searchingForDevices = false;
+    return addedAny;
   }
 
   void rebootDevice(String ipaddress) async {
