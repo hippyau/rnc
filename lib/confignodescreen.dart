@@ -28,13 +28,13 @@ class _ConfigScreenState extends State<ConfigScreen> {
       var response = http.get(a, headers: {"Accept": "application/json"});
 
       response.then((value) {
-        print(value.body);
+        //print(value.body);
 
         this.setState(() {
           var fileName = (filename.split('/').last);
 
           Map<String, dynamic> decode = json.decode(value.body);
-          print(filename + ": " + decode.toString());
+          print("GET " + filename + ": " + decode.toString());
 
           if (fileName.contains(".txt")) {
             nodes.foundDevices[ipaddress].configData[filename] =
@@ -196,20 +196,20 @@ class _ConfigScreenState extends State<ConfigScreen> {
 
       // direction selection
       else if (k.contains("direction")) {
-        String direction = "output";
+        String direction = v;
         wlist.add(ListTile(
             title: Text(prettyConfigText(k)),
             subtitle: Text("$v"),
             trailing: Switch(
-                value: (direction == "output"),
+                value: (direction.contains("output")),
                 onChanged: (value) {
-                  if (value == true) {
-                    _setNewValue(filename, k, "input");
-                  } else {
-                    _setNewValue(filename, k, "output");
-                  }
-
-                  this.setState(() {});
+                  this.setState(() {
+                    if (value == false) {
+                      _setNewValue(filename, k, "input");
+                    } else {
+                      _setNewValue(filename, k, "output");
+                    }
+                  });
                 })));
       } else {
         // default response is to ask for text edit
