@@ -145,3 +145,17 @@ class NodeRecords {
     return;
   }
 }
+
+Future<String> printIps() async {
+  String ips = "";
+  for (var interface in await NetworkInterface.list()) {
+    print('== Interface: ${interface.name} ==');
+    for (var addr in interface.addresses) {
+      ips = ips + "${addr.address}\n";
+
+      print(
+          '${addr.address} ${addr.host} ${addr.isLoopback} ${addr.rawAddress} ${addr.type.name}');
+    }
+  }
+  return ips;
+}

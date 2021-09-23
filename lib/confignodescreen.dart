@@ -213,7 +213,6 @@ class _ConfigScreenState extends State<ConfigScreen> {
                 })));
       } else {
         // default response is to ask for text edit
-
         wlist.add(ListTile(
             title: Text(prettyConfigText(k)),
             subtitle: Text("$v"),
@@ -225,6 +224,8 @@ class _ConfigScreenState extends State<ConfigScreen> {
                 textOK: Text('Set'),
                 textCancel: Text('Cancel'),
                 hintText: k,
+                // keyboardType: TextInputType.number,
+                // TODO: Only numbers can be entered
                 validator: (String? value) {
                   if (value == null || value.isEmpty) {
                     return null; //'Please enter a value';
