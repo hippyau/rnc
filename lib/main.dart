@@ -173,7 +173,7 @@ class _RCMConfigAppState extends State<RCMConfigApp> {
                 icon: Icon(Icons.refresh))
           ],
         ),
-        body: searchingForDevices == true
+        body: (searchingForDevices == true)
             ? _buildSearching()
             : ListView(
                 children: [

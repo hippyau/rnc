@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:http/http.dart' as http;
-//import 'package:http/retry.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:prompt_dialog/prompt_dialog.dart';
@@ -20,7 +19,8 @@ class ConfigScreen extends StatefulWidget {
 }
 
 class _ConfigScreenState extends State<ConfigScreen> {
-  // retrieve JSON from a node at ipaddress, looking for /json/filename.txt
+  // retrieve JSON from a node at ipaddress, looking for filename
+  // special treatment for /json/directory
   // decodes it into the nodes.foundDevices[ipaddress].configData[filename] map.
   String getJSONData(String ipaddress, String filename) {
     var a = Uri.http(ipaddress, filename);
@@ -56,6 +56,7 @@ class _ConfigScreenState extends State<ConfigScreen> {
   }
 
   // post a JSON file
+  // save the memory of the edited txt file back to the device
   Future<http.Response> _setJSONData(String ipaddress, String filename) async {
     var fileName = (filename.split('/').last);
 
@@ -89,11 +90,11 @@ class _ConfigScreenState extends State<ConfigScreen> {
     super.initState();
   }
 
-  // store the changed setting
+  // store the changed setting in memory
   void _setNewValue(String filename, String setting, String value) {
     print("set new value: Setting $setting = $value in $filename");
     nodes.foundDevices[widget.ipaddress].configChanged[filename] = true;
-
+    // import for JSON formating, parse text to numbers if they are numeric
     if (isNumeric(value)) {
       if (value.contains(".")) {
         nodes.foundDevices[widget.ipaddress].configData[filename][setting] =
@@ -115,18 +116,8 @@ class _ConfigScreenState extends State<ConfigScreen> {
     List<Widget> wlist = [];
 
     var configMap = nodes.foundDevices[widget.ipaddress].configData[filename];
-    //
-    // if (configMap == null) {
-    //   // this.getJSONData(widget.ipaddress, filename);
-
-    //   configMap = nodes.foundDevices[widget.ipaddress].configData[filename];
-    //   if (configMap == null) {
-    //     print("not yet fetched... $filename");
-    //     //nodes.foundDevices[widget.ipaddress].configData[filename]
-    //   }
-    // }
-
     //configMap.forEach((k, v) => print('$k : $v'));
+
     configMap?.forEach((k, v) {
       // decide what tile to add, based on the field type (k)
       var res;
@@ -201,6 +192,25 @@ class _ConfigScreenState extends State<ConfigScreen> {
                 this.setState(() {});
               }
             }));
+      }
+
+      // direction selection
+      else if (k.contains("direction")) {
+        String direction = "output";
+        wlist.add(ListTile(
+            title: Text(prettyConfigText(k)),
+            subtitle: Text("$v"),
+            trailing: Switch(
+                value: (direction == "output"),
+                onChanged: (value) {
+                  if (value == true) {
+                    _setNewValue(filename, k, "input");
+                  } else {
+                    _setNewValue(filename, k, "output");
+                  }
+
+                  this.setState(() {});
+                })));
       } else {
         // default response is to ask for text edit
 
