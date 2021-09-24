@@ -61,25 +61,22 @@ class NodeRecords {
   }
 
   Future<bool> findDevices() async {
-    searchingForDevices = true;
-    addDevice("192.168.1.96", name: "E131 Linux", type: "Application");
-    // addDevice("192.168.1.44", name: "Note", type: "Type");
-    //  addDevice("192.168.1.95", name: "Display Name", type: "Board");
-    var addedAny = false;
+    searchingForDevices = true; // global signal
+    List<String> foundips = [];
 
-    // might be required for android et al.
+    // simulate this device
+    addDevice("192.168.1.96", name: "E131 Linux", type: "Application");
+
+    var addedAny = false; // found anything?
+
+    // required for android et al.
     var factory = (dynamic host, int port,
         {bool? reuseAddress, bool? reusePort, int? ttl}) {
       var tll = 5;
       return RawDatagramSocket.bind(host, port,
           reuseAddress: true, reusePort: true, ttl: tll);
     };
-
     final MDnsClient client = MDnsClient(rawDatagramSocketFactory: factory);
-
-    // final MDnsClient client = MDnsClient();
-
-    List<String> foundips = [];
 
     // Search for devices
     print("mDNS: Search...");

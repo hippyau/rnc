@@ -322,8 +322,8 @@ class _ConfigScreenState extends State<ConfigScreen> {
               },
               itemBuilder: (_) => [
                 new CheckedPopupMenuItem(
-                  checked: _srcname == '',
-                  value: '',
+                  checked: _srcname == 'Undefined',
+                  value: 'Undefined',
                   child: new Text('None'),
                 ),
                 new CheckedPopupMenuItem(
