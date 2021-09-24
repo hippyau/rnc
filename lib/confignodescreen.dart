@@ -152,11 +152,13 @@ class _ConfigScreenState extends State<ConfigScreen> {
         wlist.add(ListTile(
             title: Text(prettyConfigText(k)),
             subtitle: Text("$v"),
-            trailing: DecoratedBox(
-                decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(width: 25.0, color: hcolor),
-            )),
+            trailing: Padding(
+                padding: EdgeInsets.all(24.0),
+                child: DecoratedBox(
+                    decoration: BoxDecoration(
+                  // shape: BoxShape.circle,
+                  border: Border.all(width: 16.0, color: hcolor),
+                ))),
             onTap: () async {
               res = await showDialog(
                 context: context,
@@ -215,7 +217,26 @@ class _ConfigScreenState extends State<ConfigScreen> {
                 })));
       }
 
-      // source selection
+      // ArtNet4 protocol selection
+      else if (k.contains("protocol") && filename.contains("artnet")) {
+        String direction = v;
+        wlist.add(ListTile(
+            title: Text(prettyConfigText(k)),
+            subtitle: Text(prettyConfigText(v)),
+            trailing: Switch(
+                value: (direction.contains("artnet")),
+                onChanged: (value) {
+                  this.setState(() {
+                    if (value == false) {
+                      _setNewValue(filename, k, "sacn");
+                    } else {
+                      _setNewValue(filename, k, "artnet");
+                    }
+                  });
+                })));
+      }
+
+      // LTC source selection
       else if (k.contains("source") && filename.contains("ltc")) {
         String _srcname = v;
 
@@ -225,7 +246,7 @@ class _ConfigScreenState extends State<ConfigScreen> {
             trailing: PopupMenuButton(
               icon: Icon(Icons.lock_clock),
               iconSize: 28,
-              //color: Colors.cyan,
+              color: Colors.black,
               onSelected: (value) {
                 setState(() {
                   if (value != null &&
@@ -274,17 +295,374 @@ class _ConfigScreenState extends State<ConfigScreen> {
                 ),
               ],
             )));
-        if (_srcname != null) {
+        if (_srcname != v) {
           _setNewValue(filename, k, _srcname);
         }
       }
 
-      // merge mode selection
+      // GPS module selection
+      else if (k.contains("module") && filename.contains("gps")) {
+        String _srcname = v;
+
+        wlist.add(ListTile(
+            title: Text(prettyConfigText(k)),
+            subtitle: Text("$v"),
+            trailing: PopupMenuButton(
+              icon: Icon(Icons.gps_fixed),
+              iconSize: 28,
+              color: Colors.black,
+              onSelected: (value) {
+                setState(() {
+                  if (value != null &&
+                      value != v &&
+                      value.runtimeType == String) {
+                    _setNewValue(filename, k, value.toString());
+                  }
+                });
+              },
+              itemBuilder: (_) => [
+                new CheckedPopupMenuItem(
+                  checked: _srcname == '',
+                  value: '',
+                  child: new Text('None'),
+                ),
+                new CheckedPopupMenuItem(
+                  checked: _srcname == 'ATGM336H',
+                  value: 'ATGM336H',
+                  child: new Text('ATGM336H'),
+                ),
+                new CheckedPopupMenuItem(
+                  checked: _srcname == 'ublox-NEO7',
+                  value: 'ublox-NEO7',
+                  child: new Text('ublox-NEO7'),
+                ),
+                new CheckedPopupMenuItem(
+                  checked: _srcname == 'MTK3339',
+                  value: 'MTK3339',
+                  child: new Text('MTK3339'),
+                ),
+              ],
+            )));
+        if (_srcname != v) {
+          _setNewValue(filename, k, _srcname);
+        }
+      }
+
+      // Colon Blink Modes
+      else if (k.contains("colon_blink") && filename.contains("display")) {
+        String _srcname = v;
+
+        wlist.add(ListTile(
+            title: Text(prettyConfigText(k)),
+            subtitle: Text(prettyConfigText(v)),
+            trailing: PopupMenuButton(
+              icon: Icon(Icons.signal_cellular_4_bar_sharp),
+              iconSize: 28,
+              color: Colors.black,
+              onSelected: (value) {
+                setState(() {
+                  if (value != null &&
+                      value != v &&
+                      value.runtimeType == String) {
+                    _setNewValue(filename, k, value.toString());
+                  }
+                });
+              },
+              itemBuilder: (_) => [
+                new CheckedPopupMenuItem(
+                  checked: _srcname == 'off',
+                  value: 'off',
+                  child: new Text('Solid'),
+                ),
+                new CheckedPopupMenuItem(
+                  checked: _srcname == 'down',
+                  value: 'down',
+                  child: new Text('Fade down'),
+                ),
+                new CheckedPopupMenuItem(
+                  checked: _srcname == 'up',
+                  value: 'up',
+                  child: new Text('Fade up'),
+                ),
+              ],
+            )));
+        if (_srcname != v) {
+          _setNewValue(filename, k, _srcname);
+        }
+      }
+
+      // max7219 type
+      else if (k.contains("max7219_type") && filename.contains("display")) {
+        String _srcname = v;
+
+        wlist.add(ListTile(
+            title: Text(prettyConfigText(k)),
+            subtitle: Text(prettyConfigText(v)),
+            trailing: PopupMenuButton(
+              icon: Icon(Icons.settings_display),
+              iconSize: 28,
+              color: Colors.black,
+              onSelected: (value) {
+                setState(() {
+                  if (value != null &&
+                      value != v &&
+                      value.runtimeType == String) {
+                    _setNewValue(filename, k, value.toString());
+                  }
+                });
+              },
+              itemBuilder: (_) => [
+                new CheckedPopupMenuItem(
+                  checked: _srcname == 'matrix',
+                  value: 'matrix',
+                  child: new Text('Matrix'),
+                ),
+                new CheckedPopupMenuItem(
+                  checked: _srcname == '7segment',
+                  value: '7segment',
+                  child: new Text('7 Segment'),
+                ),
+              ],
+            )));
+        if (_srcname != v) {
+          _setNewValue(filename, k, _srcname);
+        }
+      }
+
+      // ws28xx type
+      else if (k.contains("ws28xx_type") && filename.contains("display")) {
+        String _srcname = v;
+
+        wlist.add(ListTile(
+            title: Text(prettyConfigText(k)),
+            subtitle: Text(prettyConfigText(v)),
+            trailing: PopupMenuButton(
+              icon: Icon(Icons.settings_display),
+              iconSize: 28,
+              color: Colors.black,
+              onSelected: (value) {
+                setState(() {
+                  if (value != null &&
+                      value != v &&
+                      value.runtimeType == String) {
+                    _setNewValue(filename, k, value.toString());
+                  }
+                });
+              },
+              itemBuilder: (_) => [
+                new CheckedPopupMenuItem(
+                  checked: _srcname == 'matrix',
+                  value: 'matrix',
+                  child: new Text('Matrix'),
+                ),
+                new CheckedPopupMenuItem(
+                  checked: _srcname == '7segment',
+                  value: '7segment',
+                  child: new Text('7 Segment'),
+                ),
+              ],
+            )));
+        if (_srcname != v) {
+          _setNewValue(filename, k, _srcname);
+        }
+      }
+
+      // LED type
+      else if (k.contains("led_type") && filename.contains("display")) {
+        String _srcname = v;
+
+        wlist.add(ListTile(
+            title: Text(prettyConfigText(k)),
+            subtitle: Text(v),
+            trailing: PopupMenuButton(
+              icon: Icon(Icons.settings_display),
+              iconSize: 28,
+              color: Colors.black,
+              onSelected: (value) {
+                setState(() {
+                  if (value != null &&
+                      value != v &&
+                      value.runtimeType == String) {
+                    _setNewValue(filename, k, value.toString());
+                  }
+                });
+              },
+              itemBuilder: (_) => [
+                new CheckedPopupMenuItem(
+                  checked: _srcname == 'WS2801',
+                  value: 'WS2801',
+                  child: new Text('WS2801'),
+                ),
+                new CheckedPopupMenuItem(
+                  checked: _srcname == 'WS2811',
+                  value: 'WS2811',
+                  child: new Text('WS2811'),
+                ),
+                new CheckedPopupMenuItem(
+                  checked: _srcname == 'WS2812',
+                  value: 'WS2812',
+                  child: new Text('WS2812'),
+                ),
+                new CheckedPopupMenuItem(
+                  checked: _srcname == 'WS2812B',
+                  value: 'WS2812B',
+                  child: new Text('WS2811B'),
+                ),
+                new CheckedPopupMenuItem(
+                  checked: _srcname == 'WS2813',
+                  value: 'WS2813',
+                  child: new Text('WS2813'),
+                ),
+                new CheckedPopupMenuItem(
+                  checked: _srcname == 'WS2815',
+                  value: 'WS2815',
+                  child: new Text('WS2815'),
+                ),
+                new CheckedPopupMenuItem(
+                  checked: _srcname == 'SK6812',
+                  value: 'SK6812',
+                  child: new Text('SK6812'),
+                ),
+                new CheckedPopupMenuItem(
+                  checked: _srcname == 'SK6812W',
+                  value: 'SK6812W',
+                  child: new Text('SK6812W'),
+                ),
+                new CheckedPopupMenuItem(
+                  checked: _srcname == 'SK9822',
+                  value: 'SK9822',
+                  child: new Text('SK9822'),
+                ),
+                new CheckedPopupMenuItem(
+                  checked: _srcname == 'APA102',
+                  value: 'APA102',
+                  child: new Text('APA102'),
+                ),
+                new CheckedPopupMenuItem(
+                  checked: _srcname == 'TLC59711',
+                  value: 'TLC59711',
+                  child: new Text('TLC59711'),
+                ),
+                new CheckedPopupMenuItem(
+                  checked: _srcname == 'UCS1903',
+                  value: 'UCS1903',
+                  child: new Text('UCS1903'),
+                ),
+                new CheckedPopupMenuItem(
+                  checked: _srcname == 'UCS2903',
+                  value: 'UCS2903',
+                  child: new Text('UCS2903'),
+                ),
+                new CheckedPopupMenuItem(
+                  checked: _srcname == 'CS8812',
+                  value: 'CS8812',
+                  child: new Text('CS8812'),
+                ),
+                new CheckedPopupMenuItem(
+                  checked: _srcname == 'P9813',
+                  value: 'P9813',
+                  child: new Text('P9813'),
+                )
+              ],
+            )));
+        if (_srcname != v) {
+          _setNewValue(filename, k, _srcname);
+        }
+      }
+
+      // LED RGB mapping
+      else if (k.contains("led_rgb_mapping") && filename.contains("display")) {
+        String _srcname = v;
+
+        wlist.add(ListTile(
+            title: Text(prettyConfigText(k)),
+            subtitle: Text(v),
+            trailing: PopupMenuButton(
+              icon: Icon(Icons.sort),
+              iconSize: 28,
+              color: Colors.black,
+              onSelected: (value) {
+                setState(() {
+                  if (value != null &&
+                      value != v &&
+                      value.runtimeType == String) {
+                    _setNewValue(filename, k, value.toString());
+                  }
+                });
+              },
+              // "RGB", "RBG", "GRB", "GBR", "BRG", "BGR"
+              itemBuilder: (_) => [
+                new CheckedPopupMenuItem(
+                  checked: _srcname == 'RGB',
+                  value: 'RGB',
+                  child: new Text('RGB'),
+                ),
+                new CheckedPopupMenuItem(
+                  checked: _srcname == 'RBG',
+                  value: 'RBG',
+                  child: new Text('RBG'),
+                ),
+                new CheckedPopupMenuItem(
+                  checked: _srcname == 'GRB',
+                  value: 'GRB',
+                  child: new Text('GRB'),
+                ),
+                new CheckedPopupMenuItem(
+                  checked: _srcname == 'GBR',
+                  value: 'GBR',
+                  child: new Text('GBR'),
+                ),
+                new CheckedPopupMenuItem(
+                  checked: _srcname == 'BRG',
+                  value: 'BRG',
+                  child: new Text('BRG'),
+                ),
+                new CheckedPopupMenuItem(
+                  checked: _srcname == 'BGR',
+                  value: 'BGR',
+                  child: new Text('BGR'),
+                ),
+              ],
+            )));
+        if (_srcname != v) {
+          _setNewValue(filename, k, _srcname);
+        }
+      }
+
+      // Intensity sliders
+      else if (k.contains("intensity")) {
+        var level = 1.0 * v.toInt(); //= v.toInt();
+        String strval = level.round().toString();
+        var minv = 0.0;
+        var maxv = 255.0;
+        if (k.contains("max7219")) {
+          maxv = 15;
+        }
+
+        wlist.add(ListTile(
+          title: Text(prettyConfigText(k)),
+          subtitle: Slider(
+            value: level,
+            min: minv,
+            max: maxv,
+//              divisions: 5,
+            label: strval,
+            onChanged: (double value) {
+              setState(() {
+                _setNewValue(filename, k, value.round().toString());
+              });
+            },
+          ),
+          trailing: Text("$v"),
+        ));
+      }
+
+      // Merge mode selection
       else if (k.contains("merge_mode")) {
         String direction = v;
         wlist.add(ListTile(
             title: Text(prettyConfigText(k)),
-            subtitle: Text("$v"),
+            subtitle: Text(prettyConfigText(v)),
             trailing: Switch(
                 value: (direction.contains("htp")),
                 onChanged: (value) {
@@ -296,8 +674,11 @@ class _ConfigScreenState extends State<ConfigScreen> {
                     }
                   });
                 })));
-      } else {
-        // default response is to ask for text edit
+      }
+      //
+      else {
+        // default response is to always ask for text edit
+        //
         wlist.add(ListTile(
             title: Text(prettyConfigText(k)),
             subtitle: Text("$v"),
@@ -331,8 +712,6 @@ class _ConfigScreenState extends State<ConfigScreen> {
               }
             }));
       }
-
-      // or ask ip address
     });
 
     return wlist;

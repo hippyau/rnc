@@ -41,6 +41,9 @@ String prettyConfigText(String input) {
   result = result.replaceAll("Oem", "OEM");
   result = result.replaceAll("Max7219", "MAX7219");
 
+  result = result.replaceAll("Ltp", "Latest");
+  result = result.replaceAll("Htp", "Highest");
+
   return result;
 }
 
