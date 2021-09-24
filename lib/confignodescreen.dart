@@ -126,7 +126,8 @@ class _ConfigScreenState extends State<ConfigScreen> {
       if (k.contains("use_") ||
           k.contains("disable_") ||
           k.contains("enable") ||
-          (k.contains("auto_start") && filename.contains("ltc"))) {
+          ((k.contains("auto_start") || k.contains("show_systime")) &&
+              filename.contains("ltc"))) {
         wlist.add(ListTile(
           title: Text(prettyConfigText(k)),
           trailing: Switch(
@@ -212,6 +213,70 @@ class _ConfigScreenState extends State<ConfigScreen> {
                     }
                   });
                 })));
+      }
+
+      // source selection
+      else if (k.contains("source") && filename.contains("ltc")) {
+        String _srcname = v;
+
+        wlist.add(ListTile(
+            title: Text(prettyConfigText(k)),
+            subtitle: Text("$v"),
+            trailing: PopupMenuButton(
+              icon: Icon(Icons.lock_clock),
+              iconSize: 28,
+              //color: Colors.cyan,
+              onSelected: (value) {
+                setState(() {
+                  if (value != null &&
+                      value != v &&
+                      value.runtimeType == String) {
+                    _setNewValue(filename, k, value.toString());
+                  }
+                });
+              },
+              itemBuilder: (_) => [
+                ///  ltc, midi, artnet, tcnet, internal, rtp-midi, systime
+                new CheckedPopupMenuItem(
+                  checked: _srcname == 'ltc',
+                  value: 'ltc',
+                  child: new Text('LTC'),
+                ),
+                new CheckedPopupMenuItem(
+                  checked: _srcname == 'midi',
+                  value: 'midi',
+                  child: new Text('Midi'),
+                ),
+                new CheckedPopupMenuItem(
+                  checked: _srcname == 'artnet',
+                  value: 'artnet',
+                  child: new Text('Art-Net'),
+                ),
+                new CheckedPopupMenuItem(
+                  checked: _srcname == 'rtp-midi',
+                  value: 'rtp-midi',
+                  child: new Text('RTP-Midi'),
+                ),
+                new CheckedPopupMenuItem(
+                  checked: _srcname == 'tcnet',
+                  value: 'tcnet',
+                  child: new Text('TC-Net'),
+                ),
+                new CheckedPopupMenuItem(
+                  checked: _srcname == 'internal',
+                  value: 'internal',
+                  child: new Text('Internal Generator'),
+                ),
+                new CheckedPopupMenuItem(
+                  checked: _srcname == 'systime',
+                  value: 'systime',
+                  child: new Text('System Time'),
+                ),
+              ],
+            )));
+        if (_srcname != null) {
+          _setNewValue(filename, k, _srcname);
+        }
       }
 
       // merge mode selection
