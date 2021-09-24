@@ -125,7 +125,8 @@ class _ConfigScreenState extends State<ConfigScreen> {
       // boolean "switch"
       if (k.contains("use_") ||
           k.contains("disable_") ||
-          k.contains("enable")) {
+          k.contains("enable") ||
+          (k.contains("auto_start") && filename.contains("ltc"))) {
         wlist.add(ListTile(
           title: Text(prettyConfigText(k)),
           trailing: Switch(
@@ -208,6 +209,25 @@ class _ConfigScreenState extends State<ConfigScreen> {
                       _setNewValue(filename, k, "input");
                     } else {
                       _setNewValue(filename, k, "output");
+                    }
+                  });
+                })));
+      }
+
+      // merge mode selection
+      else if (k.contains("merge_mode")) {
+        String direction = v;
+        wlist.add(ListTile(
+            title: Text(prettyConfigText(k)),
+            subtitle: Text("$v"),
+            trailing: Switch(
+                value: (direction.contains("htp")),
+                onChanged: (value) {
+                  this.setState(() {
+                    if (value == false) {
+                      _setNewValue(filename, k, "ltp");
+                    } else {
+                      _setNewValue(filename, k, "htp");
                     }
                   });
                 })));
