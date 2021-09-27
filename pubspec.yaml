@@ -43,6 +43,7 @@ dependencies:
     git:
       url: git://github.com/tapanav/udp.git
       ref: master
+  segment_display: ^0.5.0
 
 
       

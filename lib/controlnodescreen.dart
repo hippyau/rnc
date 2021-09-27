@@ -1,10 +1,11 @@
-//import 'dart:async';
+import 'dart:async';
 //import 'dart:convert';
 //import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 //import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 //import 'package:prompt_dialog/prompt_dialog.dart';
+import 'package:segment_display/segment_display.dart';
 
 import 'nodes.dart';
 import 'stringclean.dart';
@@ -19,8 +20,24 @@ class ControlScreen extends StatefulWidget {
 }
 
 class _ControlScreenState extends State<ControlScreen> {
+  String now = "";
+  Timer? everySecond;
+
   @override
   void initState() {
+    // start the ArtNet TC receiver
+    nodes.rxArtnetTimecode();
+
+    // sets first value
+    now = DateTime.now().second.toString();
+
+    // defines a timer
+    everySecond = Timer.periodic(Duration(milliseconds: 33), (Timer t) {
+      setState(() {
+        now = DateTime.now().second.toString();
+      });
+    });
+
     super.initState();
   }
 
@@ -48,14 +65,47 @@ class _ControlScreenState extends State<ControlScreen> {
   List<Widget> controlType(String name) {
     List<Widget> wlist = [];
 
-    wlist.add(TextButton(
-        onPressed: () {
-          realtimeUDP(widget.ipaddress, 10501, "?list#", true);
-        },
-        child: Text("Fire List")));
-    wlist.add(Text("$name"));
-    wlist.add(Text("$name"));
-    wlist.add(Text("$name"));
+    // wlist.add(TextButton(
+    //     onPressed: () {
+    //       realtimeUDP(widget.ipaddress, 10501, "?list#", true);
+    //     },
+    //     child: Text("Fire List")));
+
+    wlist.add(Center(
+        child: Container(
+      margin: const EdgeInsets.all(10.0),
+      color: Colors.black,
+      width: 400.0,
+      height: 96.0,
+      child: Center(
+          child: SevenSegmentDisplay(
+              size: 4.0,
+              value: nodes.foundDevices[widget.ipaddress].timeCodeString)),
+    )));
+
+    wlist.add(Center(
+        child:
+            Row(mainAxisAlignment: MainAxisAlignment.center, children: <Widget>[
+      IconButton(
+          onPressed: () {
+            realtimeUDP(widget.ipaddress, 21571, "ltc!start", false);
+          },
+          icon: Icon(Icons.play_arrow),
+          iconSize: 48),
+      IconButton(
+          onPressed: () {
+            realtimeUDP(widget.ipaddress, 21571, "ltc!stop", false);
+          },
+          icon: Icon(Icons.stop),
+          iconSize: 48),
+    ])));
+
+    // wlist.add(IconButton(
+    //   onPressed: () {
+    //     realtimeUDP(widget.ipaddress, 21571, "ltc!stop", false);
+    //   },
+    //   icon: Icon(Icons.stop),
+    // ));
 
     return wlist;
   }
@@ -94,12 +144,25 @@ class _ControlScreenState extends State<ControlScreen> {
     return llist;
   }
 
+  String _oldTC = "00:00:00:00";
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
           title: Text(widget.ipaddress),
-          actions: [IconButton(onPressed: () {}, icon: Icon(Icons.refresh))],
+          actions: [
+            IconButton(
+                onPressed: () {
+                  if (nodes.foundDevices[widget.ipaddress].timeCodeString !=
+                      _oldTC) {
+                    _oldTC =
+                        nodes.foundDevices[widget.ipaddress].timeCodeString;
+                    setState(() {});
+                  }
+                },
+                icon: Icon(Icons.refresh))
+          ],
         ),
         body: ListView(children: _buildControlList()));
   }
