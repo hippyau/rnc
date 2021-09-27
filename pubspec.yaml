@@ -29,13 +29,23 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.2
   http: ^0.13.3
-  udp: ^3.0.3
+
   prompt_dialog: ^1.0.6
   multicast_dns: ^0.3.1
   sync_http: ^0.3.0
   flutter_colorpicker: ^0.6.0
-  
+  osc: ^1.0.0
 
+#  udp: ^3.0.3
+# note: The UDP library version 3.0.3 is not updated to be null-safe
+# below is a pull-request sitting on github that adds the null safety
+  udp:
+    git:
+      url: git://github.com/tapanav/udp.git
+      ref: master
+
+
+      
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 

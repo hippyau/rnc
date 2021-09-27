@@ -11,10 +11,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
 import 'confignodescreen.dart';
+import 'controlnodescreen.dart';
+import 'searchingscreen.dart';
 import 'nodes.dart';
-
-// import 'dart:io';
-// import 'package:udp/udp.dart';
 
 /* app */
 void main() {
@@ -44,16 +43,16 @@ class RCMConfigApp extends StatefulWidget {
 
 // first page
 class _RCMConfigAppState extends State<RCMConfigApp> {
-//
-
   @override
   void initState() {
+    // start searching for devices first thing on app start...
     nodes.findDevices().then((value) {
       setState(() {});
     });
     super.initState();
   }
 
+// draw an entry in the node list
 // return a single nodeCard for a node with given ipaddress
   Widget nodeCard(String ipaddress) {
     NodeRecord node = nodes.foundDevices[ipaddress];
@@ -91,7 +90,7 @@ class _RCMConfigAppState extends State<RCMConfigApp> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
-// Identify button
+// Reboot button
                           TextButton(
                             onPressed: () => nodes.rebootDevice(ipaddress),
                             child: Text("Reboot"),
@@ -100,7 +99,7 @@ class _RCMConfigAppState extends State<RCMConfigApp> {
                             width: 8,
                           ),
 
-                          // Identify button
+// Identify button
                           TextButton(
                             onPressed: () => showDialog<String>(
                               context: context,
@@ -122,7 +121,22 @@ class _RCMConfigAppState extends State<RCMConfigApp> {
                           SizedBox(
                             width: 8,
                           ),
-                          // Configure button
+// Control button
+                          TextButton(
+                            child: Text("Control"),
+                            onPressed: () {
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        ControlScreen(ipaddress: ipaddress),
+                                  ));
+                            },
+                          ),
+                          SizedBox(
+                            width: 8,
+                          ),
+// Configure button
                           TextButton(
                             child: Text("Configure"),
                             onPressed: () {
@@ -136,7 +150,7 @@ class _RCMConfigAppState extends State<RCMConfigApp> {
                           ),
                           SizedBox(
                             width: 8,
-                          )
+                          ),
                         ],
                       ),
                     )
@@ -154,10 +168,7 @@ class _RCMConfigAppState extends State<RCMConfigApp> {
   }
 
 // application front page
-// list of discovered nodes (nodeCards)
   Widget build(BuildContext context) {
-    //  nodes.findDevices().then((value) {});
-
     return Scaffold(
         appBar: AppBar(
           leading: Icon(Icons.settings_applications),
@@ -166,7 +177,7 @@ class _RCMConfigAppState extends State<RCMConfigApp> {
             IconButton(
                 onPressed: () {
                   print("Refresh all");
-                  // "forget" current node, then start over with...
+                  // need to "forget" current node, then start over with...
                   //         nodes.removeDevice(widget.ipaddress);
                   nodes.findDevices();
                   setState(() {});
@@ -178,89 +189,16 @@ class _RCMConfigAppState extends State<RCMConfigApp> {
                 icon: Icon(Icons.refresh))
           ],
         ),
-        body: (searchingForDevices == true)
-            ? SearchingScreen()
-            : ListView(
-                children: [
-                  // draw a card for all nodes found, by ipaddress
-                  for (var i in nodes.foundDevices.keys) nodeCard(i),
-                ],
-              ));
-  }
-}
-
-// searching for mDNS devices....
-class SearchingScreen extends StatefulWidget {
-  const SearchingScreen({Key? key}) : super(key: key);
-
-  @override
-  _SearchingScreenState createState() => _SearchingScreenState();
-}
-
-class _SearchingScreenState extends State<SearchingScreen> {
-  String ipsString = "";
-  @override
-  Widget build(BuildContext context) {
-    String count = nodes.foundDevices.length.toString();
-
-    var ips = printIps().then((value) {
-      ipsString = value;
-      setState(() {});
-    });
-
-    return Container(
-        height: double.infinity,
-        width: double.infinity,
-        //color: Colors.purple,
-        alignment: Alignment.center,
-        margin: EdgeInsets.all(20),
-        padding: EdgeInsets.all(16),
-        color: Colors.black.withOpacity(0.8),
-        child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _getLoadingIndicator(),
-              _getHeading(),
-              _getText(nodes.foundDevices.length > 0
-                  ? 'Found $count device(s)'
-                  : 'Nothing yet…'),
-              _getIPs(),
-            ]));
-  }
-
-  Widget _getLoadingIndicator() {
-    return Padding(
-        child: Container(
-            child: CircularProgressIndicator(strokeWidth: 3),
-            width: 64,
-            height: 64),
-        padding: EdgeInsets.only(bottom: 16));
-  }
-
-  Widget _getHeading() {
-    return Padding(
-        child: Text(
-          '\nSearching, please wait…\n',
-          style: TextStyle(color: Colors.white, fontSize: 16),
-          textAlign: TextAlign.center,
-        ),
-        padding: EdgeInsets.only(bottom: 4));
-  }
-
-  Widget _getText(String displayedText) {
-    return Text(
-      displayedText,
-      style: TextStyle(color: Colors.white, fontSize: 14),
-      textAlign: TextAlign.center,
-    );
-  }
-
-  Widget _getIPs() {
-    return Text(
-      "\n\n" + ipsString,
-      style: TextStyle(color: Colors.grey, fontSize: 12),
-      textAlign: TextAlign.center,
-    );
+        body:
+            // if we are searching for devices, show the search screen ...
+            (searchingForDevices == true)
+                ? SearchingScreen()
+                // ... otherwise, show the node list
+                : ListView(
+                    children: [
+                      // Each node, by IP address
+                      for (var i in nodes.foundDevices.keys) nodeCard(i),
+                    ],
+                  ));
   }
 }
