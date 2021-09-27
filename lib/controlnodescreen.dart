@@ -29,12 +29,12 @@ class _ControlScreenState extends State<ControlScreen> {
     nodes.rxArtnetTimecode();
 
     // sets first value
-    now = DateTime.now().second.toString();
+    //now = DateTime.now().second.toString();
 
     // defines a timer
-    everySecond = Timer.periodic(Duration(milliseconds: 33), (Timer t) {
+    everySecond = Timer.periodic(Duration(milliseconds: 30), (Timer t) {
       setState(() {
-        now = DateTime.now().second.toString();
+        // now = DateTime.now().second.toString();
       });
     });
 
@@ -79,7 +79,7 @@ class _ControlScreenState extends State<ControlScreen> {
       height: 96.0,
       child: Center(
           child: SevenSegmentDisplay(
-              size: 4.0,
+              size: 6.0,
               value: nodes.foundDevices[widget.ipaddress].timeCodeString)),
     )));
 
@@ -106,6 +106,74 @@ class _ControlScreenState extends State<ControlScreen> {
     //   },
     //   icon: Icon(Icons.stop),
     // ));
+
+// ltc!rate#rr              Sets the rate of the TimeCode. Valid values: 24, 25, 29 and 30.
+// Art-Net Time Code Type: 0=24, 1=25, 2=29.97, 3=30
+
+    String tcType = nodes.foundDevices[widget.ipaddress].timeCodeType;
+
+    wlist.add(ListTile(
+        title: Text("Rate"),
+        subtitle: Text("Rate@FPS"),
+        trailing: PopupMenuButton(
+          icon: Icon(Icons.settings_display),
+          iconSize: 28,
+          color: Colors.black,
+          onSelected: (value) {
+            setState(() {
+              if (value != null &&
+                  value != tcType &&
+                  value.runtimeType == String) {
+                nodes.foundDevices[widget.ipaddress].timeCodeType =
+                    value.toString();
+                String cmd = "ltc!rate#";
+
+                switch (value) {
+                  case '0':
+                    cmd += "24";
+                    break;
+                  case '1':
+                    cmd += "25";
+                    break;
+                  case '2':
+                    cmd += "29";
+                    break;
+                  case '3':
+                    cmd += "30";
+                    break;
+
+                  default:
+                    cmd += "30";
+                    break;
+                }
+                // ltc!rate#rr              Sets the rate of the TimeCode. Valid values: 24, 25, 29 and 30.
+                realtimeUDP(widget.ipaddress, 21571, cmd, false);
+              }
+            });
+          },
+          itemBuilder: (_) => [
+            new CheckedPopupMenuItem(
+              checked: tcType == '0',
+              value: '0',
+              child: new Text('24 FPS'),
+            ),
+            new CheckedPopupMenuItem(
+              checked: tcType == '1',
+              value: '1',
+              child: new Text('25 FPS'),
+            ),
+            new CheckedPopupMenuItem(
+              checked: tcType == '2',
+              value: '2',
+              child: new Text('29.97 FPS'),
+            ),
+            new CheckedPopupMenuItem(
+              checked: tcType == '3',
+              value: '3',
+              child: new Text('30 FPS'),
+            ),
+          ],
+        )));
 
     return wlist;
   }

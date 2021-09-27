@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'dart:ffi';
+//import 'dart:ffi';
 import 'dart:io';
 import 'dart:typed_data';
 //import 'dart:math';
@@ -23,7 +23,7 @@ class NodeRecord {
   String type = "None";
 
   String timeCodeString = "00:00:00:00";
-  int timeCodeType = 0;
+  String timeCodeType = "1";
 
   final Map<String, dynamic> configData = {}; // filename.txt JSON strings
   final Map<String, bool> configChanged = {}; // has config changed
