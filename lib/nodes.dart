@@ -1,5 +1,4 @@
 import 'dart:convert';
-//import 'dart:ffi';
 import 'dart:io';
 import 'dart:typed_data';
 //import 'dart:math';
@@ -7,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:multicast_dns/multicast_dns.dart';
 import 'package:osc/osc.dart';
 import 'package:udp/udp.dart';
+import 'timecode.dart';
 
 //import 'dart:io';
 //import 'package:udp/udp.dart';
@@ -24,6 +24,8 @@ class NodeRecord {
 
   String timeCodeString = "00:00:00:00";
   String timeCodeType = "1";
+
+  timeCode_t timeCode = new timeCode_t();
 
   final Map<String, dynamic> configData = {}; // filename.txt JSON strings
   final Map<String, bool> configChanged = {}; // has config changed
@@ -168,18 +170,43 @@ class NodeRecords {
           var str = String.fromCharCodes(datagram!.data);
           if (str.contains("Art-Net")) {
             var bytes = new ByteData.view(datagram.data.buffer);
+            // ArtTimeCode packet type
             if (bytes.getUint16(9) == 0x9700) {
               var fr = datagram.data[14].toString().padLeft(2, '0');
               var sc = datagram.data[15].toString().padLeft(2, '0');
               var mn = datagram.data[16].toString().padLeft(2, '0');
               var hr = datagram.data[17].toString().padLeft(2, '0');
-              var ty = datagram.data[18];
+              var ty = datagram.data[18]; // type
+
+              timeCode_t tc =
+                  nodes.foundDevices[datagram.address.address]?.timeCode;
+
+              tc.hr = int.parse(hr);
+              tc.mn = int.parse(mn);
+              tc.sc = int.parse(sc);
+              tc.fr = int.parse(fr);
+
+              switch (ty) {
+                case 0:
+                  tc.fps = 24;
+                  break;
+                case 1:
+                  tc.fps = 25;
+                  break;
+                case 2:
+                  tc.fps = 29;
+                  break;
+                case 3:
+                  tc.fps = 30;
+                  break;
+
+                default:
+                  tc.fr = 25;
+              }
 
               var str2 = "$hr:$mn:$sc:$fr";
               nodes.foundDevices[datagram.address.address]?.timeCodeString =
                   str2;
-              //   nodes.foundDevices[datagram.address.address]?.timeCodeType =
-              //       int.parse(ty.toString());
 
               //print("Artnet recieved TC: $str");
             }

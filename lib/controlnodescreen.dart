@@ -1,14 +1,11 @@
 import 'dart:async';
-//import 'dart:convert';
-//import 'package:flutter_colorpicker/flutter_colorpicker.dart';
-//import 'package:http/http.dart' as http;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-//import 'package:prompt_dialog/prompt_dialog.dart';
 import 'package:segment_display/segment_display.dart';
+import 'package:numberpicker/numberpicker.dart';
 
 import 'nodes.dart';
-import 'stringclean.dart';
 
 // configuration screen for a node
 class ControlScreen extends StatefulWidget {
@@ -20,56 +17,41 @@ class ControlScreen extends StatefulWidget {
 }
 
 class _ControlScreenState extends State<ControlScreen> {
-  String now = "";
-  Timer? everySecond;
+  Timer? frameTimer;
+  String timeCodeIn = "--:--:--:--";
+
+// input, not the current received art-net time code
+  int _currentHrValue = 0;
+  int _currentMnValue = 0;
+  int _currentScValue = 0;
+  int _currentFrValue = 0;
+  String _currentTC = "00:00:00:00";
+  String _Direction = "forward";
 
   @override
   void initState() {
     // start the ArtNet TC receiver
     nodes.rxArtnetTimecode();
 
-    // sets first value
-    //now = DateTime.now().second.toString();
-
     // defines a timer
-    everySecond = Timer.periodic(Duration(milliseconds: 30), (Timer t) {
+    frameTimer = Timer.periodic(Duration(milliseconds: 30), (Timer t) {
       setState(() {
-        // now = DateTime.now().second.toString();
+        timeCodeIn = nodes.foundDevices[widget.ipaddress]?.timeCodeString;
       });
     });
 
     super.initState();
   }
 
-  // store the changed setting in memory
-  // still relies on user to configure the device
-  void _setNewValue(String filename, String setting, String value) {
-    print("set new value: Setting $setting = $value in $filename");
-    nodes.foundDevices[widget.ipaddress].configChanged[filename] = true;
-    // import for JSON formating, parse text to numbers if they are numeric
-    if (isNumeric(value)) {
-      if (value.contains(".")) {
-        nodes.foundDevices[widget.ipaddress].configData[filename][setting] =
-            double.parse(value);
-      } else {
-        nodes.foundDevices[widget.ipaddress].configData[filename][setting] =
-            int.parse(value);
-      }
-    } else
-      nodes.foundDevices[widget.ipaddress].configData[filename][setting] =
-          value;
-    setState(() {}); // refresh the display
+  @override
+  void dispose() {
+    frameTimer?.cancel();
+    super.dispose();
   }
 
   // return an editable control of realtime settings
   List<Widget> controlType(String name) {
     List<Widget> wlist = [];
-
-    // wlist.add(TextButton(
-    //     onPressed: () {
-    //       realtimeUDP(widget.ipaddress, 10501, "?list#", true);
-    //     },
-    //     child: Text("Fire List")));
 
     wlist.add(Center(
         child: Container(
@@ -77,10 +59,7 @@ class _ControlScreenState extends State<ControlScreen> {
       color: Colors.black,
       width: 400.0,
       height: 96.0,
-      child: Center(
-          child: SevenSegmentDisplay(
-              size: 6.0,
-              value: nodes.foundDevices[widget.ipaddress].timeCodeString)),
+      child: Center(child: SevenSegmentDisplay(size: 6.0, value: timeCodeIn)),
     )));
 
     wlist.add(Center(
@@ -95,6 +74,14 @@ class _ControlScreenState extends State<ControlScreen> {
       IconButton(
           onPressed: () {
             realtimeUDP(widget.ipaddress, 21571, "ltc!stop", false);
+
+            _currentTC = _currentHrValue.toString().padLeft(2, "0") +
+                ":" +
+                _currentMnValue.toString().padLeft(2, "0") +
+                ":" +
+                _currentScValue.toString().padLeft(2, "0") +
+                ":" +
+                _currentFrValue.toString().padLeft(2, "0");
           },
           icon: Icon(Icons.stop),
           iconSize: 48),
@@ -174,6 +161,107 @@ class _ControlScreenState extends State<ControlScreen> {
             ),
           ],
         )));
+
+    _currentTC = _currentHrValue.toString().padLeft(2, "0") +
+        ":" +
+        _currentMnValue.toString().padLeft(2, "0") +
+        ":" +
+        _currentScValue.toString().padLeft(2, "0") +
+        ":" +
+        _currentFrValue.toString().padLeft(2, "0");
+    wlist.add(Center(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          NumberPicker(
+            textMapper: (value) {
+              String result = "";
+              result = value.padLeft(2, '0');
+              return result;
+            },
+            value: _currentHrValue,
+            minValue: 0,
+            maxValue: 23,
+            onChanged: (value) => setState(() => _currentHrValue = value),
+            itemWidth: 48,
+          ),
+          Text(":"),
+          NumberPicker(
+            textMapper: (value) {
+              String result = "";
+              result = value.padLeft(2, '0');
+              return result;
+            },
+            value: _currentMnValue,
+            minValue: 0,
+            maxValue: 59,
+            itemWidth: 48,
+            onChanged: (value) => setState(() => _currentMnValue = value),
+          ),
+          Text(":"),
+          NumberPicker(
+            textMapper: (value) {
+              String result = "";
+              result = value.padLeft(2, '0');
+              return result;
+            },
+            value: _currentScValue,
+            minValue: 0,
+            maxValue: 59,
+            itemWidth: 48,
+            onChanged: (value) => setState(() => _currentScValue = value),
+          ),
+          Text(":"),
+          NumberPicker(
+            textMapper: (value) {
+              String result = "";
+              result = value.padLeft(2, '0');
+              return result;
+            },
+            value: _currentFrValue,
+            minValue: 0,
+            maxValue: 29,
+            itemWidth: 48,
+            onChanged: (value) => setState(() => _currentFrValue = value),
+          ),
+          IconButton(
+              onPressed: () {
+                realtimeUDP(
+                    widget.ipaddress, 21571, "ltc!start#" + _currentTC, false);
+              },
+              icon: Icon(Icons.align_horizontal_left_sharp)),
+          IconButton(
+              onPressed: () {
+                realtimeUDP(
+                    widget.ipaddress, 21571, "ltc!stop#" + _currentTC, false);
+              },
+              icon: Icon(Icons.align_horizontal_right_sharp)),
+          IconButton(
+              onPressed: () {
+                realtimeUDP(
+                    widget.ipaddress, 21571, "ltc!start@" + _currentTC, false);
+              },
+              icon: Icon(Icons.alternate_email)),
+        ],
+      ),
+    ));
+
+    wlist.add(ListTile(
+        title: Text("Direction"),
+        subtitle: Text("$_Direction"),
+        trailing: Switch(
+            value: (_Direction.contains("forward")),
+            onChanged: (value) {
+              this.setState(() {
+                if (value == false) {
+                  _Direction = "backward";
+                } else {
+                  _Direction = "forward";
+                }
+                realtimeUDP(widget.ipaddress, 21571,
+                    "ltc!direction#" + _Direction, false);
+              });
+            })));
 
     return wlist;
   }

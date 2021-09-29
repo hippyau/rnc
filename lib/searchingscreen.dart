@@ -17,7 +17,7 @@ class _SearchingScreenState extends State<SearchingScreen> {
   Widget build(BuildContext context) {
     String count = nodes.foundDevices.length.toString();
 
-    var ips = printIps().then((value) {
+    printIps().then((value) {
       ipsString = value;
       setState(() {});
     });

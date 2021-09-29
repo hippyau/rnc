@@ -35,6 +35,10 @@ dependencies:
   sync_http: ^0.3.0
   flutter_colorpicker: ^0.6.0
   osc: ^1.0.0
+  segment_display: ^0.5.0
+  numberpicker: ^2.1.1
+
+#  duration_picker_dialog_box: ^1.0.1
 
 #  udp: ^3.0.3
 # note: The UDP library version 3.0.3 is not updated to be null-safe
@@ -43,9 +47,8 @@ dependencies:
     git:
       url: git://github.com/tapanav/udp.git
       ref: master
-  segment_display: ^0.5.0
-
-
+ 
+ 
       
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
