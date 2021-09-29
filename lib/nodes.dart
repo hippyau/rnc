@@ -159,31 +159,37 @@ class NodeRecords {
   void rxArtnetTimecode() async {
     // creates a UDP instance and binds it to the first available network
 
+    print("Start Listening on Art-Net socket...");
     var socket = await UDP.bind(Endpoint.any(port: Port(6454)));
+    try {
+      // receiving\listening
+      await socket.listen((datagram) {
+        if (nodes.foundDevices[datagram?.address.address] != null) {
+          var str = String.fromCharCodes(datagram!.data);
+          if (str.contains("Art-Net")) {
+            var bytes = new ByteData.view(datagram.data.buffer);
+            if (bytes.getUint16(9) == 0x9700) {
+              var fr = datagram.data[14].toString().padLeft(2, '0');
+              var sc = datagram.data[15].toString().padLeft(2, '0');
+              var mn = datagram.data[16].toString().padLeft(2, '0');
+              var hr = datagram.data[17].toString().padLeft(2, '0');
+              var ty = datagram.data[18];
 
-    // receiving\listening
-    await socket.listen((datagram) {
-      if (nodes.foundDevices[datagram?.address.address] != null) {
-        var str = String.fromCharCodes(datagram!.data);
-        if (str.contains("Art-Net")) {
-          var bytes = new ByteData.view(datagram.data.buffer);
-          if (bytes.getUint16(9) == 0x9700) {
-            var fr = datagram.data[14].toString().padLeft(2, '0');
-            var sc = datagram.data[15].toString().padLeft(2, '0');
-            var mn = datagram.data[16].toString().padLeft(2, '0');
-            var hr = datagram.data[17].toString().padLeft(2, '0');
-            var ty = datagram.data[18];
+              var str2 = "$hr:$mn:$sc:$fr";
+              nodes.foundDevices[datagram.address.address]?.timeCodeString =
+                  str2;
+              //   nodes.foundDevices[datagram.address.address]?.timeCodeType =
+              //       int.parse(ty.toString());
 
-            str = "$hr:$mn:$sc:$fr";
-            nodes.foundDevices[datagram.address.address].timeCodeString = str;
-            nodes.foundDevices[datagram.address.address].timeCodeType = ty;
-
-            //print("Artnet recieved TC: $str");
+              //print("Artnet recieved TC: $str");
+            }
           }
         }
-      }
-    }, timeout: Duration(hours: 24));
-
+      }, timeout: Duration(hours: 24));
+    } catch (e) {
+      print("rxArtnetTimecode(): Exception $e");
+      // do nothing...
+    }
     // close the UDP instances and their sockets.
     socket.close();
   }
@@ -205,7 +211,7 @@ Future<String> printIps() async {
 }
 
 // realtimeLTC("192.168.1.44","")
-void realtimeLTC(String ipaddress, String path, String cmd, String val) {
+void realtimeOSC(String ipaddress, String path, String cmd, String val) {
   final destination = InternetAddress(ipaddress);
   final port = 8000;
 
@@ -236,17 +242,14 @@ void realtimeUDP(
   // interface on port 65000.
   var sender = await UDP.bind(Endpoint.any(port: Port(port)));
 
-  // send a simple string to a broadcast endpoint on port 65001.
-  var dataLength =
-      await sender.send(cmd.codeUnits, Endpoint.broadcast(port: Port(port)));
+  // send a simple string to a endpoint at ipaddress on port specified.
+  var dataLength = await sender.send(cmd.codeUnits,
+      Endpoint.unicast(InternetAddress(ipaddress), port: Port(port)));
+// [broadcast]     await sender.send(cmd.codeUnits, Endpoint.broadcast(port: Port(port)));
 
   print("UDP String '$cmd' (${dataLength} bytes) sent.");
 
   if (expectResponse) {
-    // creates a new UDP instance and binds it to the local address and the port
-    // 65002.
-    //var receiver = await UDP.bind(Endpoint.loopback(port: Port(65002)));
-
     // receiving\listening
     await sender.listen((datagram) {
       var str = String.fromCharCodes(datagram!.data);
@@ -255,38 +258,6 @@ void realtimeUDP(
         print("UDP recieved '$str'");
     }, timeout: Duration(seconds: 2));
   }
-
-  // close the UDP instances and their sockets.
+  // close the UDP instance and their sockets.
   sender.close();
 }
-
-
-
-
-
-
-
-
-
-
-
-
-/*
-
-Frame 45959: 61 bytes on wire (488 bits), 61 bytes captured (488 bits) on interface enp2s0, id 0
-Ethernet II, Src: 02:42:10:33:08:d3 (02:42:10:33:08:d3), Dst: Broadcast (ff:ff:ff:ff:ff:ff)
-Internet Protocol Version 4, Src: 192.168.1.44, Dst: 192.168.1.255
-User Datagram Protocol, Src Port: 6454, Dst Port: 6454
-Art-Net, Opcode: ArtTimeCode (0x9700)
-    Descriptor Header
-        ID: Art-Net
-        OpCode: ArtTimeCode (0x9700)
-        ProtVer: 14
-    ArtTimeCode packet
-    Excess Bytes: 00000000000001
-
-0000   ff ff ff ff ff ff 02 42 10 33 08 d3 08 00 45 00   .......B.3....E.
-0010   00 2f 41 02 40 00 40 11 75 40 c0 a8 01 2c c0 a8   ./A.@.@.u@...,..
-0020   01 ff 19 36 19 36 00 1b 00 00 41 72 74 2d 4e 65   ...6.6....Art-Ne
-0030   74 00 00 97 00 0e 00 00 02 07 00 00 01            t............
-*/
