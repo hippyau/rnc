@@ -1,7 +1,7 @@
 # RNC - Remote Node Configuration
 
 ## Application
-An application for configuration of remote nodes running the firmware produced by [Arjan van Vaught](https://github.com/vanvught) from his awesome project.  He has written an impressive array of very powerful and rock solid, baremetal firmwares for the OrangePi Zero (Allwinner H3) low-cost devices.
+An application for configuration of remote nodes running the firmware produced by [Arjan van Vught](https://github.com/vanvught) from his awesome project.  He has written an impressive array of very powerful and rock solid, baremetal firmwares for the OrangePi Zero (Allwinner H3) low-cost devices.
 
 OrangePi Bare-Metal Appliances such as:  
 [DMX512 / RDM / Art-Net 4 / sACN E1.31 / OSC / SMPTE / Pixel controller / RGB Panel / RDMNet](https://github.com/vanvught/rpidmx512#readme).
