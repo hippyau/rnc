@@ -165,7 +165,8 @@ class NodeRecords {
     var socket = await UDP.bind(Endpoint.any(port: Port(6454)));
     try {
       // receiving\listening
-      await socket.listen((datagram) {
+      socket.asStream().listen((datagram) {
+        //     await socket.listen((datagram) {
         if (nodes.foundDevices[datagram?.address.address] != null) {
           var str = String.fromCharCodes(datagram!.data);
           if (str.contains("Art-Net")) {
@@ -212,7 +213,8 @@ class NodeRecords {
             }
           }
         }
-      }, timeout: Duration(hours: 24));
+      });
+//      }, timeout: Duration(hours: 24));
     } catch (e) {
       print("rxArtnetTimecode(): Exception $e");
       // do nothing...
@@ -278,12 +280,15 @@ void realtimeUDP(
 
   if (expectResponse) {
     // receiving\listening
-    await sender.listen((datagram) {
+
+    sender.asStream().listen((datagram) {
+//  await sender.listen((datagram) {
       var str = String.fromCharCodes(datagram!.data);
 
       if (str != cmd) // ignore loopback
         print("UDP recieved '$str'");
-    }, timeout: Duration(seconds: 2));
+    });
+//  }, timeout: Duration(seconds: 2));
   }
   // close the UDP instance and their sockets.
   sender.close();
