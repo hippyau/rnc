@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
+
 import 'package:prompt_dialog/prompt_dialog.dart';
 
 import 'nodes.dart';
@@ -200,21 +200,45 @@ class _ConfigScreenState extends State<ConfigScreen> {
 
       // direction selection
       else if (k.contains("direction")) {
-        String direction = v;
+        String _srcname = v;
+
         wlist.add(ListTile(
             title: Text(prettyConfigText(k)),
             subtitle: Text("$v"),
-            trailing: Switch(
-                value: (direction.contains("output")),
-                onChanged: (value) {
-                  this.setState(() {
-                    if (value == false) {
-                      _setNewValue(filename, k, "input");
-                    } else {
-                      _setNewValue(filename, k, "output");
-                    }
-                  });
-                })));
+            trailing: PopupMenuButton(
+              icon: Icon(Icons.gps_fixed),
+              iconSize: 28,
+              color: Colors.black,
+              onSelected: (value) {
+                setState(() {
+                  if (value != null &&
+                      value != v &&
+                      value.runtimeType == String) {
+                    _setNewValue(filename, k, value.toString());
+                  }
+                });
+              },
+              itemBuilder: (_) => [
+                new CheckedPopupMenuItem(
+                  checked: _srcname == 'disabled',
+                  value: 'disabled',
+                  child: new Text('Disabled'),
+                ),
+                new CheckedPopupMenuItem(
+                  checked: _srcname == 'input',
+                  value: 'input',
+                  child: new Text('Input'),
+                ),
+                new CheckedPopupMenuItem(
+                  checked: _srcname == 'output',
+                  value: 'output',
+                  child: new Text('Output'),
+                )
+              ],
+            )));
+        if (_srcname != v) {
+          _setNewValue(filename, k, _srcname);
+        }
       }
 
       // ArtNet4 protocol selection

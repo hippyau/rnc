@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
+
 import 'package:segment_display/segment_display.dart';
 import 'package:numberpicker/numberpicker.dart';
 
