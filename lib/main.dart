@@ -194,8 +194,13 @@ class _RCMConfigAppState extends State<RCMConfigApp> {
                 // ... otherwise, show the node list
                 : ListView(
                     children: [
-                      // Each node, by IP address
-                      for (var i in nodes.foundDevices.keys) nodeCard(i),
+                      // Each node, sorted by IP address
+                      ...nodes.foundDevices.keys
+                          .toList()
+                          .map((ipaddress) => nodeCard(ipaddress))
+                          .toList(),
+
+                      //for (var i in nodes.foundDevices.keys) nodeCard(i),
                     ],
                   ));
   }
