@@ -206,7 +206,7 @@ class _ConfigScreenState extends State<ConfigScreen> {
             title: Text(prettyConfigText(k)),
             subtitle: Text("$v"),
             trailing: PopupMenuButton(
-              icon: Icon(Icons.gps_fixed),
+              icon: Icon(Icons.alt_route),
               iconSize: 28,
               color: Colors.black,
               onSelected: (value) {
@@ -233,6 +233,54 @@ class _ConfigScreenState extends State<ConfigScreen> {
                   checked: _srcname == 'output',
                   value: 'output',
                   child: new Text('Output'),
+                )
+              ],
+            )));
+        if (_srcname != v) {
+          _setNewValue(filename, k, _srcname);
+        }
+      }
+
+// failsafe selection
+      else if (k.contains("failsafe")) {
+        String _srcname = v;
+
+        wlist.add(ListTile(
+            title: Text(prettyConfigText(k)),
+            subtitle: Text("$v"),
+            trailing: PopupMenuButton(
+              icon: Icon(Icons.safety_check),
+              iconSize: 28,
+              color: Colors.black,
+              onSelected: (value) {
+                setState(() {
+                  if (value != null &&
+                      value != v &&
+                      value.runtimeType == String) {
+                    _setNewValue(filename, k, value.toString());
+                  }
+                });
+              },
+              itemBuilder: (_) => [
+                new CheckedPopupMenuItem(
+                  checked: _srcname == 'hold',
+                  value: 'hold',
+                  child: new Text('Hold'),
+                ),
+                new CheckedPopupMenuItem(
+                  checked: _srcname == 'off',
+                  value: 'off',
+                  child: new Text('Off'),
+                ),
+                new CheckedPopupMenuItem(
+                  checked: _srcname == 'on',
+                  value: 'on',
+                  child: new Text('On'),
+                ),
+                new CheckedPopupMenuItem(
+                  checked: _srcname == 'playback',
+                  value: 'playback',
+                  child: new Text('Playback'),
                 )
               ],
             )));
