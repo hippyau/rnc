@@ -338,7 +338,7 @@ class _ConfigScreenState extends State<ConfigScreen> {
                 new CheckedPopupMenuItem(
                   checked: _srcname == 'midi',
                   value: 'midi',
-                  child: new Text('Midi'),
+                  child: new Text('MIDI'),
                 ),
                 new CheckedPopupMenuItem(
                   checked: _srcname == 'artnet',
@@ -348,7 +348,7 @@ class _ConfigScreenState extends State<ConfigScreen> {
                 new CheckedPopupMenuItem(
                   checked: _srcname == 'rtp-midi',
                   value: 'rtp-midi',
-                  child: new Text('RTP-Midi'),
+                  child: new Text('RTP-MIDI'),
                 ),
                 new CheckedPopupMenuItem(
                   checked: _srcname == 'tcnet',
